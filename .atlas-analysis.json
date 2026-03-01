@@ -1,0 +1,127 @@
+{
+  "projectType": "cli-tool",
+  "projectName": "Spec Kit",
+  "projectDescription": "A toolkit to help you get started with Spec-Driven Development, enabling teams to focus on product specifications and predictable outcomes",
+  "theme": "aspen",
+  "primaryColor": "#6366f1",
+  "lightColor": "#818cf8",
+  "darkColor": "#4f46e5",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/spec-driven-development",
+              "concepts/workflow",
+              "concepts/philosophy"
+            ]
+          },
+          {
+            "group": "CLI Reference",
+            "pages": [
+              "cli/overview",
+              "cli/init",
+              "cli/check",
+              "cli/commands"
+            ]
+          },
+          {
+            "group": "Slash Commands",
+            "pages": [
+              "commands/overview",
+              "commands/constitution",
+              "commands/specify",
+              "commands/clarify",
+              "commands/plan",
+              "commands/tasks",
+              "commands/implement",
+              "commands/analyze",
+              "commands/checklist"
+            ]
+          },
+          {
+            "group": "AI Agents",
+            "pages": [
+              "agents/overview",
+              "agents/supported-agents",
+              "agents/configuration"
+            ]
+          },
+          {
+            "group": "Advanced",
+            "pages": [
+              "advanced/extensions",
+              "advanced/templates",
+              "advanced/scripts",
+              "advanced/troubleshooting"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Examples",
+        "groups": [
+          {
+            "group": "Tutorials",
+            "pages": [
+              "examples/overview",
+              "examples/greenfield-project",
+              "examples/brownfield-enhancement",
+              "examples/parallel-implementations"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Community",
+        "groups": [
+          {
+            "group": "Contributing",
+            "pages": [
+              "community/overview",
+              "community/contributing",
+              "community/support",
+              "community/changelog"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Specify CLI for project bootstrapping with multiple AI agent support",
+    "Structured specification templates for intent-driven development",
+    "Slash commands workflow for specification → planning → tasks → implementation",
+    "Support for 15+ AI coding agents (Claude, Gemini, Copilot, Cursor, etc.)",
+    "Constitution-based project governance and development principles",
+    "Automated branch and feature numbering management",
+    "Quality checklists for specification and plan validation",
+    "Extension system for custom workflow integrations",
+    "Cross-platform script support (Bash/PowerShell)",
+    "Template-driven document generation"
+  ],
+  "publicApiSurface": [
+    "specify init <project-name>",
+    "specify init --here",
+    "specify check",
+    "/speckit.constitution",
+    "/speckit.specify",
+    "/speckit.clarify",
+    "/speckit.plan",
+    "/speckit.tasks",
+    "/speckit.implement",
+    "/speckit.analyze",
+    "/speckit.checklist"
+  ]
+}
