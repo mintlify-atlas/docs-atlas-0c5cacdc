@@ -1,0 +1,166 @@
+---
+title: Changelog
+description: Recent changes and updates to Spec Kit and the Specify CLI
+---
+
+Recent changes to the Specify CLI and templates are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## Version 0.1.6
+
+<Accordion title="0.1.6 - February 23, 2026">
+  ### Fixed
+  
+  **Parameter Ordering Issues (#1641)**
+  
+  Fixed CLI parameter parsing issue where option flags were incorrectly consumed as values for preceding options.
+  
+  - Added validation to detect when `--ai` or `--ai-commands-dir` incorrectly consume following flags like `--here` or `--ai-skills`
+  - Now provides clear error messages: "Invalid value for --ai: '--here'"
+  - Includes helpful hints suggesting proper usage and listing available agents
+  - Commands like `specify init --ai-skills --ai --here` now fail with actionable feedback instead of confusing "Must specify project name" errors
+  - Added comprehensive test suite (5 new tests) to prevent regressions
+</Accordion>
+
+## Version 0.1.5
+
+<Accordion title="0.1.5 - February 21, 2026">
+  ### Fixed
+  
+  **AI Skills Installation Bug (#1658)**
+  
+  Fixed `--ai-skills` flag not generating skill files for GitHub Copilot and other agents with non-standard command directory structures.
+  
+  - Added `commands_subdir` field to `AGENT_CONFIG` to explicitly specify the subdirectory name for each agent
+  - Affected agents now work correctly: copilot (`.github/agents/`), opencode (`.opencode/command/`), windsurf (`.windsurf/workflows/`), codex (`.codex/prompts/`), kilocode (`.kilocode/workflows/`), q (`.amazonq/prompts/`), and agy (`.agent/workflows/`)
+  - The `install_ai_skills()` function now uses the correct path for all agents instead of assuming `commands/` for everyone
+</Accordion>
+
+## Version 0.1.4
+
+<Accordion title="0.1.4 - February 20, 2026">
+  ### Fixed
+  
+  **Qoder CLI Detection**
+  
+  Renamed `AGENT_CONFIG` key from `"qoder"` to `"qodercli"` to match the actual executable name, fixing `specify check` and `specify init --ai` detection failures.
+</Accordion>
+
+## Version 0.1.3
+
+<Accordion title="0.1.3 - February 20, 2026">
+  ### Added
+  
+  **Generic Agent Support**
+  
+  Added `--ai generic` option for unsupported AI agents ("bring your own agent"):
+  
+  - Requires `--ai-commands-dir <path>` to specify where the agent reads commands from
+  - Generates Markdown commands with `$ARGUMENTS` format (compatible with most agents)
+  - Example: `specify init my-project --ai generic --ai-commands-dir .myagent/commands/`
+  - Enables users to start with Spec Kit immediately while their agent awaits formal support
+</Accordion>
+
+## Version 0.0.102
+
+<Accordion title="0.0.102 - February 20, 2026">
+  ### Fixed
+  
+  Include 'src/**' path in release workflow triggers (#1646)
+</Accordion>
+
+## Version 0.0.101
+
+<Accordion title="0.0.101 - February 19, 2026">
+  ### Changed
+  
+  Dependency update: bump github/codeql-action from 3 to 4 (#1635)
+</Accordion>
+
+## Version 0.0.100
+
+<Accordion title="0.0.100 - February 19, 2026">
+  ### Added
+  
+  - Added pytest and Python linting (ruff) to CI (#1637)
+  - Added pull request template for better contribution guidelines (#1634)
+</Accordion>
+
+## Version 0.0.99
+
+<Accordion title="0.0.99 - February 19, 2026">
+  ### Added
+  
+  AI Skills feature (#1632)
+</Accordion>
+
+## Version 0.0.98
+
+<Accordion title="0.0.98 - February 19, 2026">
+  ### Changed
+  
+  - Dependency update: bump actions/stale from 9 to 10 (#1623)
+  - Added dependabot configuration for pip and GitHub Actions updates (#1622)
+</Accordion>
+
+## Version 0.0.97
+
+<Accordion title="0.0.97 - February 18, 2026">
+  ### Changed
+  
+  Removed Maintainers section from README.md (#1618)
+</Accordion>
+
+## Version 0.0.96
+
+<Accordion title="0.0.96 - February 17, 2026">
+  ### Fixed
+  
+  Fixed typo in plan-template.md (#1446)
+</Accordion>
+
+## Version 0.0.95
+
+<Accordion title="0.0.95 - February 12, 2026">
+  ### Added
+  
+  Added support for new agent: Google Anti Gravity (#1220)
+</Accordion>
+
+## Version 0.0.94
+
+<Accordion title="0.0.94 - February 11, 2026">
+  ### Added
+  
+  Added stale workflow for 180-day inactive issues and PRs (#1594)
+</Accordion>
+
+## Earlier Versions
+
+<Info>
+For the complete version history, see the [CHANGELOG.md](https://github.com/github/spec-kit/blob/main/CHANGELOG.md) file in the repository.
+</Info>
+
+## Release Cycle
+
+Spec Kit follows semantic versioning:
+
+- **Major versions** (1.0.0) - Breaking changes that require migration
+- **Minor versions** (0.1.0) - New features and enhancements, backward compatible
+- **Patch versions** (0.0.1) - Bug fixes and minor improvements
+
+## Staying Updated
+
+To upgrade to the latest version:
+
+```bash
+uv tool install specify-cli --force --from git+https://github.com/github/spec-kit.git
+```
+
+<CardGroup cols={2}>
+  <Card title="Watch Releases" icon="bell" href="https://github.com/github/spec-kit/releases">
+    Get notified about new versions on GitHub
+  </Card>
+  <Card title="Star the Repo" icon="star" href="https://github.com/github/spec-kit">
+    Show your support and stay connected
+  </Card>
+</CardGroup>

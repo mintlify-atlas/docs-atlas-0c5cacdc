@@ -1,0 +1,639 @@
+---
+title: Agent Configuration
+description: Configure and customize AI agent integration for your Spec Kit projects
+---
+
+## Project Initialization
+
+The primary way to configure agent integration is through the `specify init` command. This sets up the complete project structure with agent-specific configurations.
+
+### Basic Initialization
+
+<Tabs>
+  <Tab title="New Project">
+    Create a new project directory with Spec Kit integration:
+    
+    ```bash
+    # Interactive mode - prompts for agent selection
+    specify init my-project
+    
+    # Direct agent specification
+    specify init my-project --ai claude
+    specify init my-project --ai gemini
+    specify init my-project --ai copilot
+    ```
+  </Tab>
+  
+  <Tab title="Existing Project">
+    Initialize Spec Kit in an existing directory:
+    
+    ```bash
+    # Using dot notation
+    specify init . --ai claude
+    
+    # Using --here flag (recommended)
+    specify init --here --ai windsurf
+    
+    # Force merge without confirmation
+    specify init --here --force --ai cursor-agent
+    ```
+  </Tab>
+</Tabs>
+
+### Agent-Specific Configuration
+
+Each agent has unique configuration requirements based on its directory structure and command format.
+
+<AccordionGroup>
+  <Accordion title="Claude Code Configuration">
+    **Directory Structure:**
+    ```
+    .claude/
+    └── commands/
+        ├── speckit.constitution.md
+        ├── speckit.specify.md
+        ├── speckit.plan.md
+        ├── speckit.tasks.md
+        ├── speckit.implement.md
+        ├── speckit.clarify.md
+        ├── speckit.analyze.md
+        ├── speckit.checklist.md
+        └── speckit.taskstoissues.md
+    ```
+    
+    **Initialization:**
+    ```bash
+    specify init my-project --ai claude
+    ```
+    
+    **Special Notes:**
+    - Uses Markdown format with `$ARGUMENTS` for argument passing
+    - Supports the `claude migrate-installer` command
+    - CLI tool checked at `~/.claude/local/claude` as fallback
+  </Accordion>
+  
+  <Accordion title="Gemini CLI Configuration">
+    **Directory Structure:**
+    ```
+    .gemini/
+    └── commands/
+        ├── speckit.constitution.toml
+        ├── speckit.specify.toml
+        ├── speckit.plan.toml
+        ├── speckit.tasks.toml
+        ├── speckit.implement.toml
+        ├── speckit.clarify.toml
+        ├── speckit.analyze.toml
+        ├── speckit.checklist.toml
+        └── speckit.taskstoissues.toml
+    ```
+    
+    **Initialization:**
+    ```bash
+    specify init my-project --ai gemini
+    ```
+    
+    **Special Notes:**
+    - Uses TOML format with `{{args}}` for argument passing
+    - Requires `gemini` CLI tool installation
+    - Commands stored in `prompt` field of TOML files
+  </Accordion>
+  
+  <Accordion title="GitHub Copilot Configuration">
+    **Directory Structure:**
+    ```
+    .github/
+    └── agents/
+        ├── speckit.constitution.agent.md
+        ├── speckit.specify.agent.md
+        ├── speckit.plan.agent.md
+        ├── speckit.tasks.agent.md
+        ├── speckit.implement.agent.md
+        ├── speckit.clarify.agent.md
+        ├── speckit.analyze.agent.md
+        ├── speckit.checklist.agent.md
+        └── speckit.taskstoissues.agent.md
+    ```
+    
+    **Initialization:**
+    ```bash
+    specify init my-project --ai copilot
+    ```
+    
+    **Special Notes:**
+    - Uses `.agent.md` extension with special `mode` frontmatter field
+    - IDE-based, no CLI tool requirement
+    - Commands stored in `.github/agents/` (not `commands/` subdirectory)
+  </Accordion>
+  
+  <Accordion title="Windsurf Configuration">
+    **Directory Structure:**
+    ```
+    .windsurf/
+    └── workflows/
+        ├── speckit.constitution.md
+        ├── speckit.specify.md
+        ├── speckit.plan.md
+        ├── speckit.tasks.md
+        ├── speckit.implement.md
+        ├── speckit.clarify.md
+        ├── speckit.analyze.md
+        ├── speckit.checklist.md
+        └── speckit.taskstoissues.md
+    ```
+    
+    **Initialization:**
+    ```bash
+    specify init my-project --ai windsurf
+    ```
+    
+    **Special Notes:**
+    - Uses `workflows/` subdirectory instead of `commands/`
+    - IDE-based, no CLI tool requirement
+    - Markdown format with `$ARGUMENTS`
+  </Accordion>
+  
+  <Accordion title="opencode Configuration">
+    **Directory Structure:**
+    ```
+    .opencode/
+    └── command/          # Note: singular 'command', not 'commands'
+        ├── speckit.constitution.md
+        ├── speckit.specify.md
+        ├── speckit.plan.md
+        ├── speckit.tasks.md
+        ├── speckit.implement.md
+        ├── speckit.clarify.md
+        ├── speckit.analyze.md
+        ├── speckit.checklist.md
+        └── speckit.taskstoissues.md
+    ```
+    
+    **Initialization:**
+    ```bash
+    specify init my-project --ai opencode
+    ```
+    
+    **Special Notes:**
+    - Uses singular `command/` directory (unique to opencode)
+    - Requires `opencode` CLI tool installation
+    - Markdown format with `$ARGUMENTS`
+  </Accordion>
+  
+  <Accordion title="Generic Agent Configuration">
+    **Custom Directory Structure:**
+    ```
+    .myagent/              # Your custom directory
+    └── commands/          # Or your custom subdirectory
+        ├── speckit.constitution.md
+        ├── speckit.specify.md
+        ├── speckit.plan.md
+        └── ...
+    ```
+    
+    **Initialization:**
+    ```bash
+    specify init my-project --ai generic --ai-commands-dir .myagent/commands/
+    ```
+    
+    **Special Notes:**
+    - Requires `--ai-commands-dir` parameter
+    - Creates standard Markdown format commands
+    - No CLI tool checks performed
+    - Useful for unsupported or custom agents
+  </Accordion>
+</AccordionGroup>
+
+## Advanced Configuration Options
+
+### Script Type Selection
+
+Choose between POSIX shell scripts (bash/zsh) or PowerShell scripts:
+
+<CodeGroup>
+```bash POSIX Shell (Default)
+specify init my-project --ai claude --script sh
+```
+
+```powershell PowerShell
+specify init my-project --ai claude --script ps
+```
+</CodeGroup>
+
+<Info>
+**When to use each:**
+- **`sh`**: Linux, macOS, WSL, or bash-compatible environments (default)
+- **`ps`**: Windows with PowerShell, cross-platform PowerShell scenarios
+</Info>
+
+### Agent Skills Installation
+
+Install commands as [agentskills.io](https://agentskills.io) compatible skills:
+
+```bash
+specify init my-project --ai claude --ai-skills
+```
+
+**What this does:**
+
+1. Creates agent-specific `skills/` directory (e.g., `.claude/skills/`)
+2. Converts each command to a skill with `SKILL.md` file
+3. Adds enhanced descriptions and metadata
+4. Enables skill discovery and portability
+
+**Example skill structure:**
+```
+.claude/
+├── commands/
+│   └── speckit.specify.md
+└── skills/
+    └── speckit-specify/
+        └── SKILL.md
+```
+
+**Skill file format:**
+```markdown
+---
+name: speckit-specify
+description: Create or update feature specifications from natural language descriptions. Use when starting new features or refining requirements.
+compatibility: Requires spec-kit project structure with .specify/ directory
+metadata:
+  author: github-spec-kit
+  source: templates/commands/specify.md
+---
+
+# Speckit Specify Skill
+
+[Command content...]
+```
+
+### Git Repository Management
+
+<Tabs>
+  <Tab title="Automatic Git Init (Default)">
+    By default, Spec Kit initializes a Git repository with an initial commit:
+    
+    ```bash
+    specify init my-project --ai claude
+    # Creates git repo, commits initial structure
+    ```
+  </Tab>
+  
+  <Tab title="Skip Git Initialization">
+    Disable automatic Git repository creation:
+    
+    ```bash
+    specify init my-project --ai claude --no-git
+    # Project created without git init
+    ```
+  </Tab>
+</Tabs>
+
+### Tool Requirement Override
+
+Skip CLI tool checks during initialization:
+
+```bash
+specify init my-project --ai claude --ignore-agent-tools
+```
+
+<Warning>
+Use this flag only when:
+- You're setting up templates for later use
+- The agent tool is installed in a non-standard location
+- You're creating documentation or examples
+
+You'll still need the agent tool to actually use the commands.
+</Warning>
+
+### GitHub API Configuration
+
+When working in environments with rate limiting (CI/CD, corporate networks):
+
+<CodeGroup>
+```bash Using CLI Flag
+specify init my-project --ai claude --github-token ghp_your_token_here
+```
+
+```bash Environment Variable
+export GITHUB_TOKEN=ghp_your_token_here
+specify init my-project --ai claude
+
+# Or using GH_TOKEN
+export GH_TOKEN=ghp_your_token_here
+specify init my-project --ai claude
+```
+</CodeGroup>
+
+**Benefits:**
+- Increases rate limit from 60/hour to 5,000/hour
+- Required in some corporate/CI environments
+- Prevents template download failures
+
+### Debug Mode
+
+Enable verbose diagnostic output for troubleshooting:
+
+```bash
+specify init my-project --ai claude --debug
+```
+
+**Debug output includes:**
+- Detailed API request/response information
+- Template extraction progress
+- File creation operations
+- Error stack traces
+
+## Project Structure
+
+Regardless of the agent chosen, all projects share this core structure:
+
+```
+my-project/
+├── .specify/                    # Core Spec Kit directory
+│   ├── memory/
+│   │   └── constitution.md      # Project principles (from template)
+│   ├── scripts/
+│   │   ├── bash/               # POSIX shell scripts
+│   │   │   ├── create-new-feature.sh
+│   │   │   ├── setup-plan.sh
+│   │   │   └── ...
+│   │   └── powershell/         # PowerShell scripts
+│   │       ├── Create-New-Feature.ps1
+│   │       ├── Setup-Plan.ps1
+│   │       └── ...
+│   ├── specs/                  # Feature specifications (created during workflow)
+│   │   └── 001-feature-name/
+│   │       ├── spec.md
+│   │       ├── plan.md
+│   │       └── tasks.md
+│   └── templates/              # Document templates
+│       ├── spec-template.md
+│       ├── plan-template.md
+│       ├── tasks-template.md
+│       ├── constitution-template.md
+│       └── checklist-template.md
+├── .<agent>/                   # Agent-specific directory
+│   ├── commands/              # (or workflows/, prompts/, agents/)
+│   │   └── speckit.*.md       # (or .toml, .agent.md)
+│   └── skills/                # (optional, with --ai-skills)
+│       └── speckit-*/
+│           └── SKILL.md
+└── .git/                       # Git repository (unless --no-git)
+```
+
+## Environment Variables
+
+### SPECIFY_FEATURE
+
+Override automatic feature detection for non-Git repositories:
+
+```bash
+# Set before using /speckit.plan or follow-up commands
+export SPECIFY_FEATURE="001-photo-albums"
+
+# Then run commands in your AI agent
+/speckit.plan ...
+/speckit.tasks
+```
+
+<Info>
+**When to use:**
+- Working in a repository without Git branches
+- Overriding automatic feature directory detection
+- Testing or debugging feature workflows
+
+**Note:** Must be set in the agent's environment context, not just your shell.
+</Info>
+
+### GitHub Authentication
+
+Configure GitHub API access:
+
+```bash
+# Option 1: GITHUB_TOKEN (recommended)
+export GITHUB_TOKEN=ghp_your_token_here
+
+# Option 2: GH_TOKEN (GitHub CLI compatible)
+export GH_TOKEN=ghp_your_token_here
+
+# Then initialize project
+specify init my-project --ai claude
+```
+
+## Multi-Agent Projects
+
+You can initialize a project with multiple agents by running `specify init` multiple times:
+
+```bash
+# Initialize with Claude
+specify init my-project --ai claude
+
+# Add Gemini support
+cd my-project
+specify init --here --ai gemini --force
+
+# Add GitHub Copilot support
+specify init --here --ai copilot --force
+```
+
+**Result:**
+```
+my-project/
+├── .specify/          # Shared infrastructure
+├── .claude/
+│   └── commands/
+├── .gemini/
+│   └── commands/
+└── .github/
+    └── agents/
+```
+
+<Warning>
+While technically possible, using multiple agents in the same project can lead to:
+- Confusion about which agent to use
+- Potential conflicts in generated files
+- Difficulty maintaining consistency
+
+**Recommendation:** Choose one primary agent per project for best results.
+</Warning>
+
+## Updating Agent Configurations
+
+To update agent configurations after initialization:
+
+<Steps>
+  <Step title="Upgrade Specify CLI">
+    ```bash
+    uv tool install specify-cli --force --from git+https://github.com/github/spec-kit.git
+    ```
+  </Step>
+  
+  <Step title="Reinitialize Project">
+    ```bash
+    cd my-project
+    specify init --here --ai claude --force
+    ```
+    
+    <Info>
+    The `--force` flag merges new templates and commands without prompting. Your existing `.specify/specs/` and `.specify/memory/constitution.md` are preserved.
+    </Info>
+  </Step>
+  
+  <Step title="Review Changes">
+    Check updated command files and templates:
+    ```bash
+    git diff .claude/commands/
+    git diff .specify/templates/
+    ```
+  </Step>
+</Steps>
+
+## Customizing Commands
+
+You can customize the generated slash commands after initialization:
+
+<Tabs>
+  <Tab title="Markdown Commands">
+    Edit command files directly in `.claude/commands/`, `.cursor/commands/`, `.opencode/command/`, etc.
+    
+    ```markdown
+    ---
+    description: "Your custom description"
+    ---
+    
+    # Custom prompt content
+    
+    Your custom instructions here...
+    
+    Execute: bash .specify/scripts/bash/create-new-feature.sh $ARGUMENTS
+    ```
+  </Tab>
+  
+  <Tab title="TOML Commands">
+    Edit TOML configuration in `.gemini/commands/` or `.qwen/commands/`:
+    
+    ```toml
+    description = "Your custom description"
+    
+    prompt = """
+    # Custom prompt content
+    
+    Your custom instructions here...
+    
+    Execute: bash .specify/scripts/bash/create-new-feature.sh {{args}}
+    """
+    ```
+  </Tab>
+</Tabs>
+
+<Warning>
+Customizations are **overwritten** when you run `specify init --here --force`. To preserve customizations:
+
+1. Back up modified command files before upgrading
+2. Use version control to track changes
+3. Reapply customizations after upgrade
+4. Consider contributing improvements upstream
+</Warning>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Commands not appearing in agent">
+    **Symptoms:** Slash commands don't show up in your AI agent
+    
+    **Solutions:**
+    1. Restart your AI agent or IDE
+    2. Verify command files exist in the correct directory:
+       ```bash
+       ls -la .claude/commands/
+       ls -la .gemini/commands/
+       ```
+    3. Check file permissions (especially on Unix systems):
+       ```bash
+       chmod 644 .claude/commands/*.md
+       ```
+    4. Ensure you're in the project root directory
+  </Accordion>
+  
+  <Accordion title="Script execution failures">
+    **Symptoms:** Commands fail when trying to execute scripts
+    
+    **Solutions:**
+    1. Verify script executable permissions:
+       ```bash
+       ls -la .specify/scripts/bash/
+       chmod +x .specify/scripts/bash/*.sh
+       ```
+    2. Check script type matches your system:
+       ```bash
+       # Should show sh scripts on Unix, ps on Windows
+       ls .specify/scripts/
+       ```
+    3. Reinitialize with correct script type:
+       ```bash
+       # For Windows PowerShell
+       specify init --here --ai claude --script ps --force
+       ```
+  </Accordion>
+  
+  <Accordion title="Template download failures">
+    **Symptoms:** GitHub API rate limit errors during initialization
+    
+    **Solutions:**
+    1. Use GitHub token for authentication:
+       ```bash
+       specify init my-project --ai claude --github-token ghp_your_token
+       ```
+    2. Set environment variable:
+       ```bash
+       export GITHUB_TOKEN=ghp_your_token
+       specify init my-project --ai claude
+       ```
+    3. Wait for rate limit to reset (check with `--debug` flag)
+  </Accordion>
+  
+  <Accordion title="Agent tool not found">
+    **Symptoms:** CLI tool check fails during initialization
+    
+    **Solutions:**
+    1. Install the required CLI tool:
+       - Claude: https://docs.anthropic.com/en/docs/claude-code/setup
+       - Gemini: https://github.com/google-gemini/gemini-cli
+       - opencode: https://opencode.ai
+    2. Verify tool is in PATH:
+       ```bash
+       which claude
+       which gemini
+       which opencode
+       ```
+    3. Use `--ignore-agent-tools` to skip check (if you'll install later):
+       ```bash
+       specify init my-project --ai claude --ignore-agent-tools
+       ```
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Supported Agents" icon="robot" href="/agents/supported-agents">
+    View all 15+ supported AI agents with installation links and status
+  </Card>
+  
+  <Card title="Agent Overview" icon="book" href="/agents/overview">
+    Learn about agent integration concepts and the spec-driven workflow
+  </Card>
+  
+  <Card title="Quick Start Guide" icon="rocket" href="/quickstart">
+    Get started with your first spec-driven development project
+  </Card>
+  
+  <Card title="CLI Reference" icon="terminal" href="/cli/overview">
+    Complete reference for all Specify CLI commands
+  </Card>
+  
+  <Card title="CLI Reference" icon="terminal" href="/cli/overview">
+    Complete reference for all Specify CLI commands and options
+  </Card>
+</CardGroup>

@@ -1,0 +1,358 @@
+---
+title: Installation
+description: Install the Specify CLI and set up your development environment
+---
+
+## Prerequisites
+
+Before installing Spec Kit, ensure you have the following tools installed:
+
+<CardGroup cols={2}>
+  <Card title="Operating System" icon="desktop">
+    Linux, macOS, or Windows (PowerShell scripts supported without WSL)
+  </Card>
+  <Card title="Python 3.11+" icon="python" href="https://www.python.org/downloads/">
+    Required for running the Specify CLI tool
+  </Card>
+  <Card title="uv Package Manager" icon="package" href="https://docs.astral.sh/uv/">
+    Modern Python package and project manager
+  </Card>
+  <Card title="Git" icon="code-branch" href="https://git-scm.com/downloads">
+    Version control for specification management
+  </Card>
+</CardGroup>
+
+### AI Coding Assistant
+
+You'll need one of the supported AI coding assistants. Spec Kit works with:
+
+- [Claude Code](https://www.anthropic.com/claude-code) - Anthropic's CLI assistant
+- [GitHub Copilot](https://code.visualstudio.com/) - Microsoft's AI pair programmer
+- [Cursor](https://cursor.sh/) - AI-first code editor
+- [Gemini CLI](https://github.com/google-gemini/gemini-cli) - Google's CLI assistant
+- [opencode](https://opencode.ai/) - Open source coding assistant
+- [Windsurf](https://windsurf.com/) - IDE with built-in workflows
+- And many more - see the [full list](/supported-agents)
+
+<Note>
+You can skip AI agent tool checks during installation using the `--ignore-agent-tools` flag if you prefer to configure them later.
+</Note>
+
+## Installing uv
+
+The `uv` tool is a fast Python package installer and resolver. Install it using one of these methods:
+
+<CodeGroup>
+```bash macOS/Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+```powershell Windows
+powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+```bash pip
+pip install uv
+```
+</CodeGroup>
+
+Verify the installation:
+
+```bash
+uv --version
+```
+
+## Installing Specify CLI
+
+Spec Kit offers two installation approaches depending on your usage pattern:
+
+### Option 1: Persistent Installation (Recommended)
+
+Install the Specify CLI once and use it across all your projects:
+
+```bash
+uv tool install specify-cli --from git+https://github.com/github/spec-kit.git
+```
+
+<Info>
+**Benefits of persistent installation:**
+- Tool stays installed and available in your PATH
+- No need to create shell aliases
+- Better tool management with `uv tool list`, `uv tool upgrade`, `uv tool uninstall`
+- Cleaner shell configuration
+- Faster subsequent runs (no reinstallation)
+</Info>
+
+After installation, the `specify` command is available globally:
+
+<CodeGroup>
+```bash Create New Project
+# Create a new project directory
+specify init my-awesome-app
+```
+
+```bash Initialize Current Directory
+# Initialize in current directory
+specify init .
+# or use the --here flag
+specify init --here
+```
+
+```bash Check System Tools
+# Verify installed tools
+specify check
+```
+</CodeGroup>
+
+#### Upgrading Specify
+
+To upgrade to the latest version:
+
+```bash
+uv tool install specify-cli --force --from git+https://github.com/github/spec-kit.git
+```
+
+For detailed upgrade instructions, see the [Upgrade Guide](/upgrade).
+
+### Option 2: One-Time Usage
+
+Run Specify directly without installing, using `uvx`:
+
+```bash
+uvx --from git+https://github.com/github/spec-kit.git specify init my-awesome-app
+```
+
+<Warning>
+This method reinstalls Specify each time you run it, which is slower. Use this for testing or one-off projects. For regular use, choose the persistent installation method.
+</Warning>
+
+## Configuration Options
+
+### Specify AI Assistant
+
+You can specify your AI assistant during initialization to set up the correct command files and directory structure:
+
+<CodeGroup>
+```bash Claude Code
+specify init my-project --ai claude
+```
+
+```bash GitHub Copilot
+specify init my-project --ai copilot
+```
+
+```bash Cursor
+specify init my-project --ai cursor-agent
+```
+
+```bash Gemini CLI
+specify init my-project --ai gemini
+```
+
+```bash opencode
+specify init my-project --ai opencode
+```
+
+```bash Generic (Bring Your Own)
+specify init my-project --ai generic --ai-commands-dir .myagent/commands/
+```
+</CodeGroup>
+
+See the [CLI Reference](/cli-reference) for all available AI assistant options.
+
+### Script Type Selection
+
+All automation scripts provide both Bash (`.sh`) and PowerShell (`.ps1`) variants:
+
+<CodeGroup>
+```bash Force Bash Scripts
+specify init my-project --script sh
+```
+
+```powershell Force PowerShell Scripts
+specify init my-project --script ps
+```
+</CodeGroup>
+
+**Auto-detection behavior:**
+- Windows: Defaults to `ps` (PowerShell)
+- Linux/macOS: Defaults to `sh` (Bash)
+- Interactive mode: Prompts for selection unless `--script` is specified
+
+### Initialize in Current Directory
+
+You can initialize Spec Kit in an existing directory:
+
+<CodeGroup>
+```bash Using . (dot)
+specify init . --ai claude
+```
+
+```bash Using --here flag
+specify init --here --ai claude
+```
+
+```bash Force Overwrite
+# Skip confirmation when directory has files
+specify init . --force --ai claude
+# or
+specify init --here --force --ai claude
+```
+</CodeGroup>
+
+### Additional Options
+
+<CodeGroup>
+```bash Skip Git Initialization
+specify init my-project --no-git
+```
+
+```bash Ignore Agent Tool Checks
+specify init my-project --ai claude --ignore-agent-tools
+```
+
+```bash Enable Debug Output
+specify init my-project --ai claude --debug
+```
+
+```bash Use GitHub Token
+# For corporate environments with API restrictions
+specify init my-project --ai claude --github-token ghp_your_token_here
+```
+
+```bash Install AI Skills
+# Install Prompt.MD templates as agent skills
+specify init my-project --ai claude --ai-skills
+```
+</CodeGroup>
+
+## Verifying Installation
+
+After initialization, verify your setup:
+
+<Steps>
+  <Step title="Check System Tools">
+    Run the check command to verify all prerequisites:
+    
+    ```bash
+    specify check
+    ```
+    
+    This validates the presence of:
+    - Git version control
+    - Python 3.11+
+    - Your selected AI coding assistant (if applicable)
+  </Step>
+  
+  <Step title="Verify Project Structure">
+    Your project should have the following structure:
+    
+    ```plaintext
+    my-project/
+    ├── .specify/
+    │   ├── memory/
+    │   │   └── constitution.md
+    │   ├── scripts/
+    │   │   ├── bash/
+    │   │   │   ├── check-prerequisites.sh
+    │   │   │   ├── create-new-feature.sh
+    │   │   │   ├── setup-plan.sh
+    │   │   │   └── update-agent-context.sh
+    │   │   └── powershell/
+    │   │       ├── check-prerequisites.ps1
+    │   │       ├── create-new-feature.ps1
+    │   │       ├── setup-plan.ps1
+    │   │       └── update-agent-context.ps1
+    │   ├── specs/
+    │   └── templates/
+    │       ├── constitution-template.md
+    │       ├── plan-template.md
+    │       ├── spec-template.md
+    │       └── tasks-template.md
+    └── .claude/commands/  (or .github/agents/, .cursor/commands/, etc.)
+        ├── constitution.md
+        ├── specify.md
+        ├── clarify.md
+        ├── plan.md
+        ├── tasks.md
+        └── implement.md
+    ```
+  </Step>
+  
+  <Step title="Test AI Agent Commands">
+    Launch your AI coding assistant in the project directory and verify the slash commands are available:
+    
+    - `/speckit.constitution` - Create project principles
+    - `/speckit.specify` - Define requirements
+    - `/speckit.clarify` - Resolve ambiguities
+    - `/speckit.plan` - Generate technical plans
+    - `/speckit.tasks` - Create task lists
+    - `/speckit.implement` - Execute implementation
+  </Step>
+</Steps>
+
+## Troubleshooting
+
+### Git Credential Manager on Linux
+
+If you encounter Git authentication issues on Linux, install Git Credential Manager:
+
+```bash
+#!/usr/bin/env bash
+set -e
+echo "Downloading Git Credential Manager v2.6.1..."
+wget https://github.com/git-ecosystem/git-credential-manager/releases/download/v2.6.1/gcm-linux_amd64.2.6.1.deb
+echo "Installing Git Credential Manager..."
+sudo dpkg -i gcm-linux_amd64.2.6.1.deb
+echo "Configuring Git to use GCM..."
+git config --global credential.helper manager
+echo "Cleaning up..."
+rm gcm-linux_amd64.2.6.1.deb
+echo "✅ Git Credential Manager installed successfully"
+```
+
+### Python Version Issues
+
+If you encounter Python version errors, verify your Python installation:
+
+```bash
+python --version
+# or
+python3 --version
+```
+
+Spec Kit requires Python 3.11 or later. If you have an older version, upgrade using your system's package manager or download from [python.org](https://www.python.org/downloads/).
+
+### Path Issues
+
+If the `specify` command is not found after persistent installation:
+
+<CodeGroup>
+```bash macOS/Linux
+# Check if uv tools directory is in PATH
+echo $PATH | grep .local/bin
+
+# If not, add to your shell profile
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+```powershell Windows
+# Check uv tools directory
+$env:PATH
+
+# If needed, add to PATH (run as Administrator)
+[Environment]::SetEnvironmentVariable("Path", $env:Path + ";$env:USERPROFILE\.local\bin", "User")
+```
+</CodeGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Quick Start Guide" icon="bolt" href="/quickstart">
+    Follow the quick start to create your first specification
+  </Card>
+  <Card title="CLI Reference" icon="book" href="/cli/overview">
+    Explore all available commands and options
+  </Card>
+</CardGroup>

@@ -1,0 +1,577 @@
+---
+title: Commands Reference
+description: Complete reference for all Specify CLI commands
+---
+
+## Core Commands
+
+These commands form the foundation of Specify CLI functionality.
+
+### init
+
+Initialize a new Specify project with AI assistant integration.
+
+```bash
+specify init [PROJECT_NAME] [OPTIONS]
+```
+
+**See**: [Full init command documentation](/cli/init)
+
+**Quick examples**:
+
+```bash
+# Create new project
+specify init my-project --ai claude
+
+# Initialize in current directory
+specify init --here --ai copilot
+
+# Custom agent
+specify init my-project --ai generic --ai-commands-dir .myagent/commands/
+```
+
+---
+
+### check
+
+Verify installed tools and AI assistant CLI availability.
+
+```bash
+specify check
+```
+
+**See**: [Full check command documentation](/cli/check)
+
+**Output**: Status tree showing which tools are available in PATH.
+
+---
+
+### version
+
+Display version and system information.
+
+```bash
+specify version
+```
+
+**Output**:
+
+```
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Specify CLI Information            ┃
+┃                                    ┃
+┃   CLI Version      0.1.6           ┃
+┃   Template Version 0.2.0           ┃
+┃   Released         2025-03-01      ┃
+┃                                    ┃
+┃   Python           3.11.9          ┃
+┃   Platform         Linux           ┃
+┃   Architecture     x86_64          ┃
+┃   OS Version       6.1.0-...       ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+```
+
+**Information displayed**:
+- **CLI Version** — Installed specify-cli package version
+- **Template Version** — Latest template version from GitHub releases
+- **Released** — Template release date
+- **Python** — Python interpreter version
+- **Platform** — Operating system (Linux, Darwin, Windows)
+- **Architecture** — CPU architecture (x86_64, arm64, etc.)
+- **OS Version** — Detailed OS version string
+
+---
+
+## Extension Commands
+
+Manage Spec Kit extensions for custom workflows and integrations.
+
+All extension commands require running from within a Spec Kit project (must have `.specify/` directory).
+
+### extension list
+
+List installed extensions in the current project.
+
+```bash
+specify extension list [OPTIONS]
+```
+
+**Options**:
+
+<ParamField path="--available" type="boolean" default={false}>
+  Show available extensions from catalog (instead of installed)
+</ParamField>
+
+<ParamField path="--all" type="boolean" default={false}>
+  Show both installed and available extensions
+</ParamField>
+
+**Example output**:
+
+```bash
+$ specify extension list
+
+Installed Extensions:
+
+  ✓ github-issues (v1.2.0)
+     Integrate GitHub Issues with Spec Kit workflows
+     Commands: 3 | Hooks: 2 | Status: Enabled
+
+  ✗ jira-sync (v0.5.1)
+     Synchronize specs with Jira tickets
+     Commands: 5 | Hooks: 1 | Status: Disabled
+```
+
+---
+
+### extension add
+
+Install an extension from catalog, URL, or local directory.
+
+```bash
+specify extension add <EXTENSION> [OPTIONS]
+```
+
+**Arguments**:
+
+<ParamField path="EXTENSION" type="string" required>
+  Extension name (from catalog), URL, or local directory path
+</ParamField>
+
+**Options**:
+
+<ParamField path="--dev" type="boolean" default={false}>
+  Install from local directory (development mode)
+</ParamField>
+
+<ParamField path="--from" type="string" optional>
+  Install from custom URL (must be HTTPS or localhost)
+</ParamField>
+
+**Examples**:
+
+```bash
+# From catalog
+specify extension add github-issues
+
+# From URL
+specify extension add my-extension --from https://example.com/extension.zip
+
+# From local directory (development)
+specify extension add ~/dev/my-extension --dev
+```
+
+**What it does**:
+1. Downloads/copies extension files
+2. Validates extension manifest (`extension.yml`)
+3. Checks compatibility with current Spec Kit version
+4. Installs to `.specify/extensions/<extension-id>/`
+5. Registers commands with AI agent
+6. Sets up hooks (if any)
+
+---
+
+### extension remove
+
+Uninstall an extension from the current project.
+
+```bash
+specify extension remove <EXTENSION> [OPTIONS]
+```
+
+**Arguments**:
+
+<ParamField path="EXTENSION" type="string" required>
+  Extension ID to remove
+</ParamField>
+
+**Options**:
+
+<ParamField path="--keep-config" type="boolean" default={false}>
+  Don't remove configuration files (preserves settings)
+</ParamField>
+
+<ParamField path="--force" type="boolean" default={false}>
+  Skip confirmation prompt
+</ParamField>
+
+**Examples**:
+
+```bash
+# Remove with confirmation
+specify extension remove github-issues
+
+# Keep configuration files
+specify extension remove github-issues --keep-config
+
+# Force removal without prompt
+specify extension remove github-issues --force
+```
+
+**Behavior**:
+- Removes commands from AI agent
+- Deletes extension directory
+- Backs up config files (unless `--keep-config`)
+- Updates extension registry
+
+---
+
+### extension search
+
+Search for available extensions in the catalog.
+
+```bash
+specify extension search [QUERY] [OPTIONS]
+```
+
+**Arguments**:
+
+<ParamField path="QUERY" type="string" optional>
+  Search query to filter extensions by name or description
+</ParamField>
+
+**Options**:
+
+<ParamField path="--tag" type="string" optional>
+  Filter by tag (e.g., `testing`, `deployment`, `documentation`)
+</ParamField>
+
+<ParamField path="--author" type="string" optional>
+  Filter by author name
+</ParamField>
+
+<ParamField path="--verified" type="boolean" default={false}>
+  Show only verified extensions
+</ParamField>
+
+**Examples**:
+
+```bash
+# Show all extensions
+specify extension search
+
+# Search by keyword
+specify extension search github
+
+# Filter by tag
+specify extension search --tag testing
+
+# Verified extensions only
+specify extension search --verified
+
+# Combine filters
+specify extension search deployment --author github --verified
+```
+
+**Example output**:
+
+```bash
+🔍 Searching extension catalog...
+
+Found 3 extension(s):
+
+github-issues (v1.2.0) ✓ Verified
+  Integrate GitHub Issues with Spec Kit workflows
+
+  Author: github-spec-kit
+  Tags: github, issues, project-management
+  Downloads: 1,234 | Stars: 89
+  Repository: https://github.com/github/spec-kit-ext-github-issues
+
+  Install: specify extension add github-issues
+```
+
+---
+
+### extension info
+
+Show detailed information about a specific extension.
+
+```bash
+specify extension info <EXTENSION>
+```
+
+**Arguments**:
+
+<ParamField path="EXTENSION" type="string" required>
+  Extension ID or name to get information about
+</ParamField>
+
+**Example**:
+
+```bash
+specify extension info github-issues
+```
+
+**Output includes**:
+- Extension name, version, and verification status
+- Description and purpose
+- Author and license
+- Requirements (Spec Kit version, tools, dependencies)
+- Provided features (commands, hooks)
+- Tags and categories
+- Statistics (downloads, stars)
+- Links (repository, homepage, documentation, changelog)
+- Installation status
+
+---
+
+### extension update
+
+Update extension(s) to the latest version.
+
+```bash
+specify extension update [EXTENSION]
+```
+
+**Arguments**:
+
+<ParamField path="EXTENSION" type="string" optional>
+  Extension ID to update. If not specified, checks all installed extensions for updates.
+</ParamField>
+
+**Examples**:
+
+```bash
+# Check all extensions for updates
+specify extension update
+
+# Update specific extension
+specify extension update github-issues
+```
+
+**Note**: Automatic update functionality is under development. Current version provides manual update instructions.
+
+---
+
+### extension enable
+
+Enable a disabled extension.
+
+```bash
+specify extension enable <EXTENSION>
+```
+
+**Arguments**:
+
+<ParamField path="EXTENSION" type="string" required>
+  Extension ID to enable
+</ParamField>
+
+**Example**:
+
+```bash
+specify extension enable jira-sync
+```
+
+**Effect**:
+- Updates extension registry
+- Enables hooks in `extensions.yml`
+- Makes commands available to AI agent
+
+---
+
+### extension disable
+
+Disable an extension without removing it.
+
+```bash
+specify extension disable <EXTENSION>
+```
+
+**Arguments**:
+
+<ParamField path="EXTENSION" type="string" required>
+  Extension ID to disable
+</ParamField>
+
+**Example**:
+
+```bash
+specify extension disable jira-sync
+```
+
+**Effect**:
+- Updates extension registry
+- Disables hooks in `extensions.yml`
+- Removes commands from AI agent
+- Preserves all files and configuration
+
+**Re-enable with**: `specify extension enable <extension>`
+
+---
+
+## Global Options
+
+These options work with most Specify commands:
+
+### Help
+
+Display help information for any command:
+
+```bash
+specify --help
+specify init --help
+specify extension --help
+specify extension add --help
+```
+
+### Version
+
+Display version information:
+
+```bash
+specify --version
+```
+
+---
+
+## Exit Codes
+
+Specify CLI uses standard exit codes:
+
+- **0** — Success
+- **1** — General error (invalid arguments, missing files, failed operation)
+
+---
+
+## Environment Variables
+
+Specify CLI respects the following environment variables:
+
+### Authentication
+
+<ParamField path="GITHUB_TOKEN" type="string" optional>
+  GitHub personal access token for API requests. Increases rate limits from 60/hour to 5,000/hour.
+  
+  Alternative: `GH_TOKEN`
+</ParamField>
+
+<ParamField path="GH_TOKEN" type="string" optional>
+  Alternative name for `GITHUB_TOKEN`
+</ParamField>
+
+### Agent-Specific
+
+<ParamField path="CODEX_HOME" type="path" optional>
+  Required for Codex CLI. Must point to the `.codex/` directory in your project.
+  
+  Example:
+  ```bash
+  export CODEX_HOME=/path/to/project/.codex
+  ```
+</ParamField>
+
+---
+
+## Configuration Files
+
+### Project Structure
+
+Specify CLI creates and manages the following structure:
+
+```
+project/
+├── .specify/                    # Spec Kit core
+│   ├── memory/                  # Persistent context
+│   │   └── constitution.md      # Project principles
+│   ├── scripts/                 # Automation scripts
+│   │   ├── bash/               # Shell scripts
+│   │   └── powershell/         # PowerShell scripts
+│   ├── templates/               # Spec templates
+│   │   ├── commands/           # Command templates
+│   │   └── constitution-template.md
+│   └── extensions/              # Extensions
+│       ├── .registry.json      # Extension registry
+│       ├── .backup/            # Config backups
+│       └── <extension-id>/     # Extension files
+├── .<agent>/                    # AI agent config
+│   ├── commands/               # Agent commands
+│   └── skills/                 # Agent skills (if --ai-skills)
+└── .vscode/                     # VS Code settings
+    └── settings.json
+```
+
+### Extension Manifest
+
+Extensions must include `extension.yml`:
+
+```yaml
+name: extension-name
+id: extension-id
+version: 1.0.0
+description: Extension description
+author: author-name
+license: MIT
+
+requires:
+  speckit_version: ">=0.1.0"
+  tools:
+    - name: git
+      version: ">=2.0"
+      required: true
+
+provides:
+  commands:
+    - name: /command-name
+      description: Command description
+  hooks:
+    - name: pre-specify
+      description: Hook description
+```
+
+---
+
+## Getting Help
+
+### Command Help
+
+Use `--help` with any command:
+
+```bash
+specify --help
+specify init --help
+specify extension add --help
+```
+
+### Issues and Support
+
+- **GitHub Issues**: https://github.com/github/spec-kit/issues
+- **Documentation**: https://github.com/github/spec-kit
+- **Discussions**: https://github.com/github/spec-kit/discussions
+
+### Common Workflows
+
+**Create a new project**:
+```bash
+specify check                    # Verify tools
+specify init my-project --ai claude
+cd my-project
+```
+
+**Add extensions**:
+```bash
+specify extension search         # Browse catalog
+specify extension add github-issues
+```
+
+**Initialize existing project**:
+```bash
+cd existing-project
+specify init --here --ai copilot --force
+```
+
+**Troubleshoot**:
+```bash
+specify check                    # Check tools
+specify version                  # Check versions
+specify init --debug             # Verbose output
+```
+
+---
+
+## See Also
+
+- [CLI Overview](/cli/overview) — Introduction to Specify CLI
+- [specify init](/cli/init) — Detailed init command documentation
+- [specify check](/cli/check) — Detailed check command documentation

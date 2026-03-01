@@ -1,0 +1,603 @@
+---
+title: /speckit.implement
+description: Execute the implementation plan by processing all tasks
+---
+
+The `/speckit.implement` command executes your implementation plan by systematically processing and completing all tasks defined in `tasks.md`.
+
+## Purpose
+
+Automate feature implementation:
+- Execute tasks in correct dependency order
+- Run parallel tasks concurrently where possible
+- Follow Test-Driven Development (if tests included)
+- Create/verify ignore files for the project
+- Track progress and handle errors
+- Mark completed tasks in tasks.md
+- Validate implementation against specification
+
+<Note>
+  Implementation follows a **phase-by-phase** approach: Setup → Foundational → User Stories (by priority) → Polish. Each phase must complete before the next begins.
+</Note>
+
+## Usage
+
+```bash
+# Execute the implementation plan
+/speckit.implement
+
+# Execute with specific focus
+/speckit.implement Start with MVP only (User Story 1)
+
+# Execute after checklist validation
+/speckit.implement All checklists are complete
+```
+
+## How It Works
+
+<Steps>
+  <Step title="Run Prerequisites">
+    Executes prerequisite check script:
+    - Validates `FEATURE_DIR` exists
+    - Confirms `tasks.md` is present (errors if missing)
+    - Parses `AVAILABLE_DOCS` list
+    - Loads absolute paths for all artifacts
+  </Step>
+  
+  <Step title="Check Checklists (if any)">
+    Scans `checklists/` directory (if exists):
+    - Counts total, completed, and incomplete items per checklist
+    - Creates status table
+    - If any checklist incomplete: **STOPS** and asks user to confirm proceeding
+    - If all complete: automatically proceeds
+  </Step>
+  
+  <Step title="Load Implementation Context">
+    Reads required and optional documents:
+    - **Required**: tasks.md (task list), plan.md (architecture)
+    - **If exists**: data-model.md, contracts/, research.md, quickstart.md
+  </Step>
+  
+  <Step title="Project Setup Verification">
+    Creates/verifies ignore files based on detected technologies:
+    - Checks if git repo: creates/verifies `.gitignore`
+    - Checks for Docker: creates/verifies `.dockerignore`
+    - Checks for ESLint: creates/verifies `.eslintignore` or `eslint.config.*` ignores
+    - Checks for Prettier: creates/verifies `.prettierignore`
+    - Adds technology-specific patterns from plan.md tech stack
+  </Step>
+  
+  <Step title="Parse Task Structure">
+    Extracts from tasks.md:
+    - Task phases (Setup, Foundational, User Stories, Polish)
+    - Task IDs, descriptions, file paths
+    - Parallel markers `[P]`
+    - User story labels `[US1]`, `[US2]`, etc.
+    - Dependency relationships
+  </Step>
+  
+  <Step title="Execute Phase-by-Phase">
+    Processes each phase in order:
+    1. **Setup**: Project initialization
+    2. **Foundational**: Blocking prerequisites
+    3. **User Story phases**: Independent feature slices (by priority)
+    4. **Polish**: Cross-cutting improvements
+    
+    Within each phase:
+    - Respects dependencies (sequential vs parallel)
+    - Follows TDD (tests before implementation, if included)
+    - Validates completion before moving on
+  </Step>
+  
+  <Step title="Progress Tracking">
+    Reports after each task:
+    - Task completed
+    - Files created/modified
+    - Marks task as `[X]` in tasks.md
+    - Errors and suggested fixes (if task fails)
+  </Step>
+  
+  <Step title="Completion Validation">
+    Verifies:
+    - All required tasks completed
+    - Implementation matches specification
+    - Tests pass (if included)
+    - Technical plan followed
+  </Step>
+  
+  <Step title="Final Report">
+    Outputs summary:
+    - Total tasks completed
+    - Files created/modified
+    - Tests passed/failed
+    - Ready for next steps
+  </Step>
+</Steps>
+
+## Checklist Validation
+
+Before implementation starts, validates any checklists:
+
+<CodeGroup>
+```text All Checklists Complete
+✓ Checking checklists status...
+
+| Checklist     | Total | Completed | Incomplete | Status  |
+|---------------|-------|-----------|------------|---------|
+| ux.md         | 12    | 12        | 0          | ✓ PASS  |
+| security.md   | 8     | 8         | 0          | ✓ PASS  |
+| requirements.md | 15  | 15        | 0          | ✓ PASS  |
+
+✓ All checklists complete! Proceeding to implementation...
+```
+
+```text Incomplete Checklists
+⚠️ Checking checklists status...
+
+| Checklist     | Total | Completed | Incomplete | Status  |
+|---------------|-------|-----------|------------|---------|
+| ux.md         | 12    | 12        | 0          | ✓ PASS  |
+| security.md   | 8     | 5         | 3          | ✗ FAIL  |
+| requirements.md | 15  | 12        | 3          | ✗ FAIL  |
+
+⚠️ Some checklists are incomplete.
+
+Do you want to proceed with implementation anyway? (yes/no)
+
+[Waits for user response before continuing]
+```
+</CodeGroup>
+
+## Project Setup: Ignore Files
+
+Before implementation, creates/verifies ignore files:
+
+### Detection Logic
+
+```bash
+# Git repository check
+git rev-parse --git-dir 2>/dev/null
+# If succeeds: create/verify .gitignore
+
+# Docker check
+ls Dockerfile* 2>/dev/null || grep -q "Docker" plan.md
+# If found: create/verify .dockerignore
+
+# ESLint check
+ls .eslintrc* 2>/dev/null || ls eslint.config.* 2>/dev/null
+# If found: create/verify .eslintignore or eslint.config.* ignores
+
+# Similar checks for Prettier, npm, Terraform, Helm, etc.
+```
+
+### Technology-Specific Patterns
+
+Based on tech stack from plan.md:
+
+<CodeGroup>
+```text Node.js/TypeScript
+node_modules/
+dist/
+build/
+*.log
+.env*
+.DS_Store
+coverage/
+*.tsbuildinfo
+```
+
+```text Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+dist/
+*.egg-info/
+.pytest_cache/
+.coverage
+.env*
+```
+
+```text Rust
+target/
+debug/
+release/
+*.rs.bk
+*.rlib
+*.prof*
+.idea/
+*.log
+.env*
+Cargo.lock
+```
+
+```text Go
+*.exe
+*.test
+vendor/
+*.out
+bin/
+.env*
+```
+</CodeGroup>
+
+## Execution Flow
+
+### Phase 1: Setup
+
+```text
+▶️ Starting Phase 1: Setup (5 tasks)
+
+  ✓ T001: Create project structure per implementation plan
+    Created: backend/src/, backend/tests/, backend/src/models/, ...
+  
+  ✓ T002: Initialize Python project with FastAPI dependencies  
+    Created: backend/requirements.txt, backend/pyproject.toml
+    Installed: fastapi, sqlalchemy, pydantic, uvicorn
+  
+  ✓ T003 [P]: Configure linting (flake8, black) and formatting tools
+    Created: backend/.flake8, backend/pyproject.toml (black config)
+  
+  ✓ T004 [P]: Setup pre-commit hooks for code quality
+    Created: .pre-commit-config.yaml
+    Installed: pre-commit hooks
+  
+  ✓ T005: Configure environment variables and .env.example
+    Created: backend/.env.example
+
+✓ Phase 1 complete! (5/5 tasks)
+```
+
+### Phase 2: Foundational
+
+```text
+▶️ Starting Phase 2: Foundational (6 tasks)
+
+**⚠️ CRITICAL**: This phase BLOCKS all user stories. Must complete fully.
+
+  ✓ T006: Setup database schema and Alembic migrations framework
+    Created: backend/alembic.ini, backend/alembic/env.py, backend/alembic/versions/
+  
+  ✓ T007 [P]: Create base model class with common fields
+    Created: backend/src/models/base.py
+  
+  ✓ T008 [P]: Implement database connection pooling
+    Created: backend/src/db/connection.py
+  
+  ✓ T009 [P]: Setup FastAPI app structure with middleware
+    Created: backend/src/main.py
+  
+  ✓ T010: Create error handling middleware
+    Created: backend/src/middleware/errors.py
+  
+  ✓ T011 [P]: Configure structured logging
+    Created: backend/src/utils/logger.py
+
+✓ Phase 2 complete! Foundation ready.
+✓ User story implementation can now begin in parallel.
+```
+
+### Phase 3+: User Stories
+
+<CodeGroup>
+```text User Story 1 (MVP)
+▶️ Starting Phase 3: User Story 1 - Basic Login (P1) 🎯 MVP
+
+**Goal**: Users can log in with email and password
+
+**Tests** (if included):
+  ✓ T012 [P] [US1]: Contract test for POST /api/v1/auth/login
+    Created: backend/tests/contract/test_auth_api.py
+    Status: FAIL (expected - no implementation yet)
+  
+  ✓ T013 [P] [US1]: Contract test for POST /api/v1/auth/logout
+    Created: backend/tests/contract/test_auth_api.py
+    Status: FAIL (expected)
+  
+  ✓ T014 [P] [US1]: Integration test for login flow
+    Created: backend/tests/integration/test_login_flow.py
+    Status: FAIL (expected)
+
+**Implementation**:
+  ✓ T015 [P] [US1]: Create User model with password hashing
+    Created: backend/src/models/user.py
+  
+  ✓ T016 [P] [US1]: Create Session model
+    Created: backend/src/models/session.py
+  
+  ✓ T017 [US1]: Implement AuthService with login/logout logic
+    Created: backend/src/services/auth_service.py
+  
+  ✓ T018 [US1]: Implement session authentication middleware
+    Created: backend/src/middleware/session_auth.py
+  
+  ✓ T019 [US1]: Implement POST /api/v1/auth/login endpoint
+    Created: backend/src/api/auth.py
+    Tests: PASS (contract + integration tests now passing)
+  
+  ✓ T020 [US1]: Implement POST /api/v1/auth/logout endpoint
+    Updated: backend/src/api/auth.py
+    Tests: PASS
+  
+  ✓ T021 [US1]: Add account locking after 5 failed attempts
+    Updated: backend/src/services/auth_service.py
+  
+  ✓ T022 [US1]: Add logging for authentication events
+    Updated: backend/src/services/auth_service.py
+
+✓ Phase 3 complete! User Story 1 is fully functional.
+
+**Checkpoint**: You can now test, deploy, or demo User Story 1 independently.
+```
+
+```text User Story 2
+▶️ Starting Phase 4: User Story 2 - Password Reset (P2)
+
+**Goal**: Users can reset forgotten passwords via email
+
+[... similar structure to User Story 1 ...]
+
+✓ Phase 4 complete! User Story 2 is fully functional.
+```
+</CodeGroup>
+
+### Final Phase: Polish
+
+```text
+▶️ Starting Phase 6: Polish & Cross-Cutting Concerns
+
+  ✓ T042 [P]: Update API documentation with OpenAPI specs
+    Updated: backend/src/main.py (OpenAPI metadata)
+  
+  ✓ T043 [P]: Add comprehensive docstrings
+    Updated: All service and API files
+  
+  ✓ T044: Code cleanup and refactoring
+    Refactored: Consistent error handling, naming conventions
+  
+  ✓ T045: Performance optimization
+    Optimized: Database queries, Redis caching strategy
+  
+  ✓ T046 [P]: Security hardening
+    Added: Rate limiting, CORS configuration
+  
+  ✓ T047 [P]: Add unit tests for edge cases
+    Created: backend/tests/unit/test_auth_service.py
+  
+  ✓ T048: Run quickstart.md validation
+    Validated: All setup instructions work correctly
+  
+  ✓ T049: Update README
+    Updated: README.md with authentication feature docs
+
+✓ Phase 6 complete! All polish tasks done.
+```
+
+## Progress Tracking
+
+After each task, marks completion in tasks.md:
+
+<CodeGroup>
+```markdown Before
+- [ ] T015 [P] [US1] Create User model with password hashing in src/models/user.py
+- [ ] T016 [P] [US1] Create Session model in src/models/session.py
+```
+
+```markdown After T015 Completes
+- [X] T015 [P] [US1] Create User model with password hashing in src/models/user.py
+- [ ] T016 [P] [US1] Create Session model in src/models/session.py
+```
+</CodeGroup>
+
+## Error Handling
+
+### Non-Parallel Task Failure
+
+```text
+✗ T017 [US1]: Implement AuthService - FAILED
+
+Error: ModuleNotFoundError: No module named 'bcrypt'
+
+Suggestion: 
+  1. Add 'bcrypt' to requirements.txt
+  2. Run: pip install bcrypt
+  3. Re-run /speckit.implement to resume from T017
+
+Halting execution. Fix the error and run /speckit.implement again.
+```
+
+### Parallel Task Failure
+
+```text
+▶️ Running parallel tasks: T012, T013, T014
+
+  ✓ T012 [P] [US1]: Contract test for login - SUCCESS
+  ✗ T013 [P] [US1]: Contract test for logout - FAILED
+  ✓ T014 [P] [US1]: Integration test for login flow - SUCCESS
+
+Error in T013: Import error in test file
+
+Continuing with successful tasks. Review T013 error before proceeding.
+```
+
+## Completion Validation
+
+After all tasks:
+
+<Steps>
+  <Step title="Verify All Tasks Complete">
+    Checks all checkboxes marked `[X]` in tasks.md
+  </Step>
+  
+  <Step title="Validate Against Spec">
+    Ensures implemented features match requirements from spec.md
+  </Step>
+  
+  <Step title="Run Tests (if included)">
+    Executes all tests and reports coverage
+  </Step>
+  
+  <Step title="Confirm Technical Plan Followed">
+    Validates architecture matches plan.md decisions
+  </Step>
+</Steps>
+
+## Real-World Example
+
+<CodeGroup>
+```bash Command
+/speckit.implement
+```
+
+```text Console Output
+✓ Loaded implementation context
+  - Feature: specs/003-user-auth/
+  - Tasks: 49 total
+  - Plan: Python 3.11, FastAPI, PostgreSQL, Redis
+  - Data model: 4 entities
+  - Contracts: 2 API specs
+
+✓ Checking checklists...
+  All checklists complete (✓)
+
+✓ Project setup verification
+  ✓ Created .gitignore (Python patterns)
+  ✓ Created .dockerignore
+  ✓ Verified .eslintignore not needed (no JavaScript)
+
+✓ Parsed task structure
+  - 6 phases identified
+  - 18 parallel opportunities
+  - Dependencies validated
+
+=====================================
+▶️ Starting Implementation
+=====================================
+
+[Phase 1: Setup - 5 tasks]
+[Phase 2: Foundational - 6 tasks]
+[Phase 3: User Story 1 - 11 tasks]
+[Phase 4: User Story 2 - 10 tasks]
+[Phase 5: User Story 3 - 9 tasks]
+[Phase 6: Polish - 8 tasks]
+
+[... detailed execution output ...]
+
+=====================================
+✓ Implementation Complete!
+=====================================
+
+Summary:
+  - Total tasks: 49
+  - Completed: 49
+  - Failed: 0
+  - Files created: 34
+  - Files modified: 8
+  - Tests run: 15
+  - Tests passed: 15
+  - Tests failed: 0
+  - Test coverage: 87%
+
+Implemented user stories:
+  ✓ User Story 1: Basic Login (P1 - MVP)
+  ✓ User Story 2: Password Reset (P2)
+  ✓ User Story 3: OAuth2 Social Login (P3)
+
+All features match specification requirements.
+Technical plan followed successfully.
+
+Next steps:
+  - Review implementation
+  - Run manual testing
+  - Commit changes: git commit -m "Implement user authentication (US1-US3)"
+  - Create pull request
+```
+</CodeGroup>
+
+## Best Practices
+
+### Review Before Starting
+
+Before running implement:
+- Review tasks.md to understand what will be built
+- Complete all checklists (or consciously decide to proceed without)
+- Ensure development environment is ready
+
+### Run Analyze First (Optional)
+
+```bash
+/speckit.analyze  # Check for inconsistencies
+/speckit.implement  # Then execute
+```
+
+### Let It Run
+
+The command handles:
+- Dependency ordering
+- Parallel execution
+- File creation
+- Test execution (if included)
+- Progress tracking
+
+Avoid interrupting unless critical errors occur.
+
+### Commit After Completion
+
+```bash
+# Review changes
+git status
+git diff
+
+# Commit all implementation
+git add .
+git commit -m "feat: implement user authentication (closes #003)"
+
+# Push and create PR
+git push origin 003-user-auth
+```
+
+## Handoffs
+
+After implementation:
+
+<CardGroup cols={2}>
+  <Card title="Manual Testing" icon="flask">
+    Test the implemented features manually
+  </Card>
+  
+  <Card title="Create Pull Request" icon="code-pull-request">
+    Open PR for code review and merge
+  </Card>
+  
+  <Card title="Deploy" icon="rocket">
+    Deploy to staging/production environment
+  </Card>
+  
+  <Card title="Demo" icon="presentation-screen">
+    Demonstrate completed user stories to stakeholders
+  </Card>
+</CardGroup>
+
+## File Updates
+
+```text
+specs/003-user-auth/
+└── tasks.md                   # Checkboxes marked [X] as tasks complete
+
+backend/                       # All implementation files created/modified
+├── src/
+│   ├── models/               # User, Session, PasswordReset, OAuthConnection
+│   ├── services/             # AuthService, PasswordService, OAuthService
+│   ├── api/                  # Auth endpoints, OAuth endpoints
+│   └── middleware/           # Session auth, error handling
+└── tests/
+    ├── contract/             # API contract tests
+    ├── integration/          # User journey tests
+    └── unit/                 # Service unit tests
+```
+
+## Next Steps
+
+<Card title="Create Pull Request" icon="code-pull-request">
+  Review implementation and open PR for merge to main branch
+</Card>

@@ -1,0 +1,616 @@
+---
+title: Scripts
+description: Automation scripts for Spec-Driven Development workflow
+---
+
+Spec Kit includes a collection of Bash and PowerShell scripts that automate key parts of the Spec-Driven Development workflow. These scripts handle feature creation, branch management, prerequisite checking, and agent context updates.
+
+## Script Overview
+
+Scripts are stored in `.specify/scripts/` with parallel implementations:
+
+- **Bash scripts**: `.specify/scripts/bash/` (Linux, macOS, WSL)
+- **PowerShell scripts**: `.specify/scripts/powershell/` (Windows, cross-platform)
+
+<Tip>
+Both implementations provide identical functionality - choose based on your platform preference.
+</Tip>
+
+## Core Scripts
+
+### create-new-feature
+
+**Purpose**: Create new feature branch and specification structure
+
+**Location**:
+- Bash: `.specify/scripts/bash/create-new-feature.sh`
+- PowerShell: `.specify/scripts/powershell/create-new-feature.ps1`
+
+<CodeGroup>
+```bash Bash usage
+# Basic usage
+./create-new-feature.sh "Add user authentication system"
+
+# With custom short name
+./create-new-feature.sh "Add OAuth2 integration" --short-name "oauth"
+
+# Specify branch number manually
+./create-new-feature.sh "Implement API" --number 5
+
+# JSON output
+./create-new-feature.sh "Build dashboard" --json
+```
+
+```powershell PowerShell usage
+# Basic usage
+.\create-new-feature.ps1 "Add user authentication system"
+
+# With custom short name
+.\create-new-feature.ps1 "Add OAuth2 integration" -ShortName "oauth"
+
+# Specify branch number manually
+.\create-new-feature.ps1 "Implement API" -Number 5
+
+# JSON output
+.\create-new-feature.ps1 "Build dashboard" -Json
+```
+</CodeGroup>
+
+**What it does:**
+
+1. Determines next available feature number
+2. Generates branch name from description
+3. Creates Git branch (if Git available)
+4. Creates feature directory in `specs/`
+5. Copies spec template to feature directory
+6. Sets `SPECIFY_FEATURE` environment variable
+
+<Accordion title="Branch Naming Logic">
+The script intelligently generates branch names:
+
+1. **Filters stop words**: Removes common words ("the", "a", "to", etc.)
+2. **Keeps meaningful words**: Words 3+ characters or uppercase acronyms
+3. **Limits length**: Uses first 3-4 meaningful words
+4. **Enforces GitHub limit**: Truncates to 244 bytes if needed
+
+Examples:
+
+| Input | Generated Branch |
+|-------|------------------|
+| "Add user authentication system" | `001-user-authentication-system` |
+| "I want to implement OAuth2" | `001-implement-oauth2` |
+| "Build a REST API for the app" | `001-build-rest-api` |
+| "Create UI components" | `001-create-ui-components` |
+</Accordion>
+
+<Accordion title="Output Example">
+```text
+BRANCH_NAME: 001-user-auth
+SPEC_FILE: /path/to/specs/001-user-auth/spec.md
+FEATURE_NUM: 001
+SPECIFY_FEATURE environment variable set to: 001-user-auth
+```
+
+JSON output:
+```json
+{
+  "BRANCH_NAME": "001-user-auth",
+  "SPEC_FILE": "/path/to/specs/001-user-auth/spec.md",
+  "FEATURE_NUM": "001"
+}
+```
+</Accordion>
+
+### setup-plan
+
+**Purpose**: Initialize implementation plan from template
+
+**Location**:
+- Bash: `.specify/scripts/bash/setup-plan.sh`
+- PowerShell: `.specify/scripts/powershell/setup-plan.ps1`
+
+<CodeGroup>
+```bash Bash usage
+# Basic usage
+./setup-plan.sh
+
+# JSON output
+./setup-plan.sh --json
+```
+
+```powershell PowerShell usage
+# Basic usage
+.\setup-plan.ps1
+
+# JSON output
+.\setup-plan.ps1 -Json
+```
+</CodeGroup>
+
+**What it does:**
+
+1. Validates current feature branch
+2. Ensures feature directory exists
+3. Copies plan template to feature directory
+4. Returns paths to spec and plan files
+
+<Accordion title="Output Example">
+```text
+FEATURE_SPEC: /path/to/specs/001-user-auth/spec.md
+IMPL_PLAN: /path/to/specs/001-user-auth/plan.md
+SPECS_DIR: /path/to/specs/001-user-auth
+BRANCH: 001-user-auth
+HAS_GIT: true
+```
+</Accordion>
+
+### check-prerequisites
+
+**Purpose**: Validate prerequisites for plan/task/implementation phases
+
+**Location**:
+- Bash: `.specify/scripts/bash/check-prerequisites.sh`
+- PowerShell: `.specify/scripts/powershell/check-prerequisites.ps1`
+
+<CodeGroup>
+```bash Bash usage
+# Check for plan prerequisites
+./check-prerequisites.sh --json
+
+# Check for implementation prerequisites
+./check-prerequisites.sh --json --require-tasks --include-tasks
+
+# Get paths only (no validation)
+./check-prerequisites.sh --paths-only
+
+# Text output with status indicators
+./check-prerequisites.sh
+```
+
+```powershell PowerShell usage
+# Check for plan prerequisites
+.\check-prerequisites.ps1 -Json
+
+# Check for implementation prerequisites
+.\check-prerequisites.ps1 -Json -RequireTasks -IncludeTasks
+
+# Get paths only (no validation)
+.\check-prerequisites.ps1 -PathsOnly
+
+# Text output with status indicators
+.\check-prerequisites.ps1
+```
+</CodeGroup>
+
+**What it does:**
+
+1. Validates feature branch exists
+2. Checks required files (plan.md, tasks.md)
+3. Identifies available optional documents
+4. Returns feature directory and document list
+
+**Options:**
+- `--json` / `-Json`: Output in JSON format
+- `--require-tasks` / `-RequireTasks`: Fail if tasks.md missing
+- `--include-tasks` / `-IncludeTasks`: Include tasks.md in available docs
+- `--paths-only` / `-PathsOnly`: Skip validation, return paths only
+
+<Accordion title="Output Example">
+```text
+FEATURE_DIR:/path/to/specs/001-user-auth
+AVAILABLE_DOCS:
+  ✓ research.md
+  ✓ data-model.md
+  ✓ contracts/
+  ✓ quickstart.md
+  ✗ tasks.md
+```
+
+JSON output:
+```json
+{
+  "FEATURE_DIR": "/path/to/specs/001-user-auth",
+  "AVAILABLE_DOCS": [
+    "research.md",
+    "data-model.md",
+    "contracts/",
+    "quickstart.md"
+  ]
+}
+```
+</Accordion>
+
+### update-agent-context
+
+**Purpose**: Update AI agent context files with latest feature information
+
+**Location**:
+- Bash: `.specify/scripts/bash/update-agent-context.sh`
+- PowerShell: `.specify/scripts/powershell/update-agent-context.ps1`
+
+<CodeGroup>
+```bash Bash usage
+# Update all detected agent files
+./update-agent-context.sh
+
+# Update specific agent
+./update-agent-context.sh --agent claude
+
+# Force create if missing
+./update-agent-context.sh --create
+```
+
+```powershell PowerShell usage
+# Update all detected agent files
+.\update-agent-context.ps1
+
+# Update specific agent
+.\update-agent-context.ps1 -AgentType claude
+
+# Force create if missing
+.\update-agent-context.ps1 -CreateIfMissing
+```
+</CodeGroup>
+
+**What it does:**
+
+1. Detects agent context files (`.claude/CLAUDE.md`, `.opencode/README.md`, etc.)
+2. Updates feature information section
+3. Adds/updates paths to current spec, plan, tasks
+4. Preserves other content in agent files
+
+**Supported agents:**
+- Claude Code (`.claude/CLAUDE.md`)
+- Gemini CLI (`.gemini/GEMINI.md`)
+- GitHub Copilot (`.github/copilot-instructions.md`)
+- Cursor (`.cursorrules`)
+- opencode (`.opencode/README.md`)
+- Windsurf (`.windsurfrules`)
+- And more...
+
+### common
+
+**Purpose**: Shared utility functions used by other scripts
+
+**Location**:
+- Bash: `.specify/scripts/bash/common.sh`
+- PowerShell: `.specify/scripts/powershell/common.ps1`
+
+**Provides:**
+- `get_feature_paths()` / `Get-FeaturePathsEnv`: Get all feature-related paths
+- `check_feature_branch()` / `Test-FeatureBranch`: Validate feature branch
+- `find_repo_root()` / `Find-RepositoryRoot`: Locate repository root
+- File/directory checking utilities
+
+<Accordion title="Common Functions">
+**Bash:**
+```bash
+# Source common functions
+source "$SCRIPT_DIR/common.sh"
+
+# Get feature paths
+eval $(get_feature_paths)
+echo "Feature dir: $FEATURE_DIR"
+
+# Check feature branch
+check_feature_branch "$CURRENT_BRANCH" "$HAS_GIT"
+
+# Check if file exists and print status
+check_file "$FEATURE_SPEC" "spec.md"
+```
+
+**PowerShell:**
+```powershell
+# Source common functions
+. "$PSScriptRoot/common.ps1"
+
+# Get feature paths
+$paths = Get-FeaturePathsEnv
+Write-Output "Feature dir: $($paths.FEATURE_DIR)"
+
+# Check feature branch
+Test-FeatureBranch -Branch $paths.CURRENT_BRANCH -HasGit:$paths.HAS_GIT
+
+# Check if file exists
+Test-FileExists -Path $paths.FEATURE_SPEC -Description 'spec.md'
+```
+</Accordion>
+
+## Script Integration
+
+Scripts are automatically called by slash commands:
+
+| Command | Script Used | Purpose |
+|---------|-------------|----------|
+| `/speckit.specify` | `create-new-feature` | Create feature structure |
+| `/speckit.plan` | `setup-plan` | Initialize plan file |
+| `/speckit.tasks` | `check-prerequisites` | Validate plan exists |
+| `/speckit.implement` | `check-prerequisites` | Validate tasks exist |
+
+## Environment Variables
+
+### SPECIFY_FEATURE
+
+Override feature detection for non-Git repositories:
+
+<CodeGroup>
+```bash Bash
+# Set for current session
+export SPECIFY_FEATURE="001-user-auth"
+
+# Use in AI agent
+/speckit.plan
+```
+
+```powershell PowerShell
+# Set for current session
+$env:SPECIFY_FEATURE = "001-user-auth"
+
+# Use in AI agent
+/speckit.plan
+```
+</CodeGroup>
+
+<Tip>
+`SPECIFY_FEATURE` is automatically set by `create-new-feature` script. You only need to set it manually for non-Git workflows or when switching features.
+</Tip>
+
+## Feature Detection
+
+Scripts use this hierarchy to detect the current feature:
+
+1. **Git branch** (if Git available): Uses current branch name
+2. **SPECIFY_FEATURE env var**: Falls back to environment variable
+3. **Directory scan**: Looks for newest feature in `specs/` directory
+
+<Accordion title="Detection Examples">
+**Scenario 1: Git repository**
+```bash
+$ git branch
+* 001-user-auth
+  main
+
+$ ./check-prerequisites.sh --paths-only
+BRANCH: 001-user-auth
+FEATURE_DIR: /path/to/specs/001-user-auth
+```
+
+**Scenario 2: No Git (manual override)**
+```bash
+$ export SPECIFY_FEATURE="001-user-auth"
+$ ./check-prerequisites.sh --paths-only
+BRANCH: 001-user-auth (from SPECIFY_FEATURE)
+FEATURE_DIR: /path/to/specs/001-user-auth
+```
+
+**Scenario 3: No Git, no env var**
+```bash
+$ ls specs/
+001-user-auth  002-api-integration
+
+$ ./check-prerequisites.sh --paths-only
+BRANCH: 002-api-integration (newest in specs/)
+FEATURE_DIR: /path/to/specs/002-api-integration
+```
+</Accordion>
+
+## Git vs Non-Git Workflows
+
+### Git Workflow
+
+<CodeGroup>
+```bash With Git
+# Create feature (creates branch automatically)
+./create-new-feature.sh "Add feature"
+
+# Scripts detect current branch
+./setup-plan.sh
+./check-prerequisites.sh
+
+# Switch features by checking out branches
+git checkout 002-other-feature
+./check-prerequisites.sh  # Automatically uses 002-other-feature
+```
+</CodeGroup>
+
+### Non-Git Workflow
+
+<CodeGroup>
+```bash Without Git
+# Create feature (no branch, uses directory only)
+./create-new-feature.sh "Add feature"
+
+# Set SPECIFY_FEATURE when switching features
+export SPECIFY_FEATURE="001-add-feature"
+./setup-plan.sh
+./check-prerequisites.sh
+
+# Switch features by updating env var
+export SPECIFY_FEATURE="002-other-feature"
+./check-prerequisites.sh
+```
+</CodeGroup>
+
+## Script Error Handling
+
+All scripts follow consistent error handling:
+
+- **Exit code 0**: Success
+- **Exit code 1**: Error (with descriptive message to stderr)
+- **Validation failures**: Clear error messages guide next steps
+
+<Accordion title="Error Examples">
+```bash
+# Error: No feature branch
+$ ./check-prerequisites.sh
+ERROR: Not on a feature branch (###-name format)
+Current branch: main
+Run /speckit.specify first to create a feature.
+```
+
+```bash
+# Error: Missing plan
+$ ./check-prerequisites.sh
+ERROR: plan.md not found in specs/001-feature
+Run /speckit.plan first to create the implementation plan.
+```
+
+```bash
+# Error: Missing tasks (when required)
+$ ./check-prerequisites.sh --require-tasks
+ERROR: tasks.md not found in specs/001-feature
+Run /speckit.tasks first to create the task list.
+```
+</Accordion>
+
+## Platform Compatibility
+
+### Bash Scripts
+
+**Compatible with:**
+- Linux (all distributions)
+- macOS
+- Windows Subsystem for Linux (WSL)
+- Git Bash (limited)
+
+**Requirements:**
+- Bash 4.0+
+- Standard Unix utilities (grep, sed, awk)
+
+### PowerShell Scripts
+
+**Compatible with:**
+- Windows PowerShell 5.1+
+- PowerShell Core 7.0+ (cross-platform)
+- macOS (with PowerShell Core)
+- Linux (with PowerShell Core)
+
+**Requirements:**
+- PowerShell 5.1+ or PowerShell Core 7.0+
+
+<Tip>
+PowerShell Core is cross-platform and works on Linux/macOS. Install from [PowerShell GitHub](https://github.com/PowerShell/PowerShell).
+</Tip>
+
+## Debugging Scripts
+
+### Enable Debug Output
+
+<CodeGroup>
+```bash Bash
+# Enable trace mode
+bash -x ./create-new-feature.sh "Test feature"
+
+# Or add to script
+set -x  # Enable
+set +x  # Disable
+```
+
+```powershell PowerShell
+# Enable verbose output
+.\create-new-feature.ps1 "Test feature" -Verbose
+
+# Or in script
+$VerbosePreference = 'Continue'
+```
+</CodeGroup>
+
+### Common Issues
+
+<Accordion title="Script not executable (Bash)">
+```bash
+# Make script executable
+chmod +x .specify/scripts/bash/*.sh
+```
+</Accordion>
+
+<Accordion title="Execution policy (PowerShell)">
+```powershell
+# Check policy
+Get-ExecutionPolicy
+
+# Allow local scripts
+Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+# Or bypass for single command
+powershell -ExecutionPolicy Bypass -File .\script.ps1
+```
+</Accordion>
+
+<Accordion title="Git not found">
+```bash
+# Scripts fall back to non-Git mode
+[specify] Warning: Git repository not detected; skipped branch creation
+
+# This is normal for --no-git projects
+# Use SPECIFY_FEATURE to specify feature manually
+export SPECIFY_FEATURE="001-feature-name"
+```
+</Accordion>
+
+## Best Practices
+
+### Version Control
+
+**Do commit:**
+- All scripts in `.specify/scripts/`
+- Script modifications and customizations
+- Common utility functions
+
+**Don't commit:**
+- Generated output files
+- Temporary debug files
+- Platform-specific binaries
+
+### Script Modifications
+
+When customizing scripts:
+
+1. **Copy first**: Create a custom version
+2. **Document changes**: Add comments explaining modifications
+3. **Test both platforms**: If modifying both Bash and PowerShell
+4. **Preserve compatibility**: Maintain consistent output format
+
+<CodeGroup>
+```bash Custom script example
+#!/usr/bin/env bash
+# Custom version of create-new-feature.sh
+# Modifications:
+# - Added company-specific branch prefix
+# - Custom feature number format
+
+# Source original common functions
+source "$(dirname "$0")/common.sh"
+
+# Your customizations here
+COMPANY_PREFIX="PROJ"
+BRANCH_NAME="${COMPANY_PREFIX}-${FEATURE_NUM}-${BRANCH_SUFFIX}"
+```
+</CodeGroup>
+
+### Error Messages
+
+Good error messages:
+- Explain what went wrong
+- Suggest next steps
+- Reference relevant commands
+
+<CodeGroup>
+```bash Good error message
+echo "ERROR: Feature directory not found: $FEATURE_DIR" >&2
+echo "Run /speckit.specify first to create the feature structure." >&2
+exit 1
+```
+
+```bash Bad error message
+echo "Error: dir missing" >&2
+exit 1
+```
+</CodeGroup>
+
+## Related Resources
+
+- [Scripts Directory](https://github.com/github/spec-kit/tree/main/scripts)
+- [Bash Scripts](https://github.com/github/spec-kit/tree/main/scripts/bash)
+- [PowerShell Scripts](https://github.com/github/spec-kit/tree/main/scripts/powershell)
+- [Command Reference](/reference/commands)

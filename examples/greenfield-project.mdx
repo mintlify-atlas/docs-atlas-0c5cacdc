@@ -1,0 +1,766 @@
+---
+title: Greenfield Project Tutorial
+description: Build a photo album organizer from zero to production using Spec-Driven Development
+---
+
+This tutorial walks through building a complete application from scratch using the full SDD workflow. You'll create a photo album organizer with drag-and-drop functionality, local storage, and SQLite metadata tracking.
+
+<Info>
+  **Time to complete**: 30-45 minutes
+  
+  **What you'll build**: A functional photo organizer with albums, drag-and-drop, and virtual scrolling
+  
+  **Prerequisites**: Spec Kit installed, AI assistant configured
+</Info>
+
+## The Scenario
+
+You want to build an application that helps organize personal photo collections into albums without uploading photos to the cloud. Albums should be grouped by date and reorganizable via drag-and-drop. The app needs to handle thousands of photos efficiently.
+
+**Key constraints:**
+- No cloud storage (privacy requirement)
+- Fast performance with large collections
+- Simple, minimal dependencies
+- Local-first architecture
+
+## Step 1: Initialize Project
+
+Create a new project and configure your AI assistant:
+
+<CodeGroup>
+```bash Claude Code
+# Create project with Claude Code integration
+specify init photo-organizer --ai claude
+
+# Navigate to project
+cd photo-organizer
+
+# Launch AI assistant
+claude
+```
+
+```bash GitHub Copilot
+# Create project with Copilot integration
+specify init photo-organizer --ai copilot
+
+# Navigate to project
+cd photo-organizer
+
+# Open in VS Code
+code .
+```
+
+```bash opencode
+# Create project with opencode integration
+specify init photo-organizer --ai opencode
+
+# Navigate to project
+cd photo-organizer
+
+# Launch AI assistant
+opencode
+```
+</CodeGroup>
+
+**Verify setup:**
+
+Check that Spec Kit commands are available:
+- `/speckit.constitution`
+- `/speckit.specify`
+- `/speckit.plan`
+- `/speckit.tasks`
+- `/speckit.implement`
+
+<Note>
+  Your project now has a `.specify/` directory with templates, scripts, and the agent-specific command files (e.g., `.claude/commands/`).
+</Note>
+
+## Step 2: Establish Constitution
+
+Define the governing principles that will guide all development decisions:
+
+```text
+/speckit.constitution Create principles focused on code quality, testing 
+standards, user experience consistency, and performance requirements. 
+The application should prioritize simplicity and use minimal dependencies. 
+All features must be fully tested. Performance should be optimized for 
+handling thousands of photos without lag.
+```
+
+**What gets created:**
+
+`.specify/memory/constitution.md` with principles like:
+
+<Accordion title="Example Constitution">
+```markdown
+# Project Constitution: Photo Organizer
+
+## Version
+- Version: 1.0.0
+- Ratified: 2026-03-01
+- Last Amended: 2026-03-01
+
+## Principles
+
+### Article I: Simplicity First
+Prioritize simple, maintainable solutions over complex architectures.
+
+**Rules:**
+- Use ≤3 libraries beyond the framework
+- Avoid abstractions until proven necessary
+- Prefer vanilla JS over heavy frameworks
+
+**Rationale**: Simple code is easier to maintain and has fewer bugs.
+
+### Article II: Performance by Design
+The application MUST handle thousands of photos efficiently.
+
+**Rules:**
+- Virtual scrolling for large collections (>100 items)
+- Lazy loading for thumbnails
+- Database queries optimized with indexes
+- No operation should block the UI thread >16ms
+
+**Rationale**: User experience depends on responsive performance.
+
+### Article III: Test-Driven Quality
+All features must have comprehensive test coverage.
+
+**Rules:**
+- Unit tests for business logic
+- Integration tests for database operations
+- E2E tests for critical user journeys
+- Tests written before implementation (TDD)
+
+**Rationale**: Testing catches regressions and ensures reliability.
+
+### Article IV: Local-First Architecture
+User data MUST remain on their local machine.
+
+**Rules:**
+- No cloud storage or uploads
+- Photos referenced by filesystem path
+- Metadata stored in local SQLite database
+- Offline-capable by default
+
+**Rationale**: Privacy and user data ownership are non-negotiable.
+```
+</Accordion>
+
+<Warning>
+  The constitution is **immutable** during development. If you need to change principles, document the rationale and create a new version.
+</Warning>
+
+## Step 3: Create Specification
+
+Describe **what** you want to build (not **how** to build it):
+
+```text
+/speckit.specify Build an application that helps me organize my photos into 
+separate photo albums. Albums are grouped by date and can be reorganized by 
+dragging and dropping on the main page. Albums are never nested inside other 
+albums - they are always top-level. Within each album, photos are previewed 
+in a tile-like grid interface with thumbnails. Each photo should show a 
+thumbnail preview, capture date, and file size. Users can create new albums, 
+delete albums, and move photos between albums using drag and drop. Users can 
+add photos to albums by selecting files from their local filesystem. The 
+application should feel responsive even with hundreds of albums and thousands 
+of photos.
+```
+
+**What happens:**
+
+<Steps>
+  <Step title="AI generates short name">
+    Analyzes your description → `photo-album-organizer`
+  </Step>
+  
+  <Step title="Checks for existing features">
+    Scans branches and specs → Next number is `001`
+  </Step>
+  
+  <Step title="Creates branch and structure">
+    - Creates branch: `001-photo-album-organizer`
+    - Creates directory: `specs/001-photo-album-organizer/`
+    - Initializes: `spec.md` from template
+  </Step>
+  
+  <Step title="Generates specification">
+    Populates spec.md with user stories, requirements, success criteria
+  </Step>
+  
+  <Step title="Creates quality checklist">
+    Generates: `checklists/requirements.md` to validate completeness
+  </Step>
+</Steps>
+
+**Generated spec.md sections:**
+
+<Accordion title="User Stories (Prioritized)">
+```markdown
+### User Story 1 - View Album Collection (Priority: P1)
+
+Users can see all their photo albums displayed in a grid, sorted by date, with thumbnail previews.
+
+**Why this priority**: Core value - without viewing albums, no other features matter.
+
+**Independent Test**: Can be tested by creating test albums and verifying display. Delivers immediate value by showing existing photo organization.
+
+**Acceptance Scenarios**:
+
+1. **Given** user has 10 albums, **When** they open the app, **Then** all 10 albums are displayed in a grid sorted by creation date (newest first)
+2. **Given** an album has 100 photos, **When** album is displayed, **Then** the first 4 photos are shown as a preview thumbnail collage
+3. **Given** user has 500 albums, **When** they scroll the album list, **Then** albums load smoothly without lag using virtual scrolling
+
+### User Story 2 - Create and Manage Albums (Priority: P1)
+
+Users can create new albums, rename albums, and delete albums.
+
+**Why this priority**: Essential for organizing photos - users need to create structure before adding content.
+
+**Independent Test**: Can be tested by creating, renaming, and deleting albums. Delivers value by enabling organization.
+
+**Acceptance Scenarios**:
+
+1. **Given** user clicks "New Album", **When** they enter a name, **Then** a new empty album is created with the current date
+2. **Given** user right-clicks an album, **When** they select "Rename", **Then** they can edit the album name inline
+3. **Given** user selects an album and presses Delete, **When** they confirm, **Then** the album and all photo references are removed
+
+### User Story 3 - Add Photos to Albums (Priority: P1)
+
+Users can add photos from their local filesystem to albums.
+
+**Why this priority**: Core functionality - users need to populate albums with photos.
+
+**Independent Test**: Can be tested by selecting photos and verifying they appear in albums. Delivers value by enabling photo collection.
+
+**Acceptance Scenarios**:
+
+1. **Given** user opens an album, **When** they click "Add Photos" and select files, **Then** selected photos are added to the album
+2. **Given** user drags files from their filesystem onto an album, **When** they drop the files, **Then** photos are added to that album
+3. **Given** user adds 1000 photos to an album, **When** photos are added, **Then** the process completes within 5 seconds
+
+### User Story 4 - Drag and Drop Organization (Priority: P2)
+
+Users can drag photos between albums and reorder albums.
+
+**Why this priority**: Enhances UX but basic organization works without it.
+
+**Independent Test**: Can be tested by dragging photos and albums. Delivers value by improving organization efficiency.
+
+**Acceptance Scenarios**:
+
+1. **Given** user drags a photo from one album, **When** they drop it on another album, **Then** the photo moves to the target album
+2. **Given** user drags an album, **When** they drop it in a new position, **Then** the album order is updated and persisted
+3. **Given** user drags multiple selected photos, **When** they drop them on an album, **Then** all selected photos move together
+```
+</Accordion>
+
+<Accordion title="Functional Requirements">
+```markdown
+### Functional Requirements
+
+- **FR-001**: System MUST store album metadata (id, name, created_date, sort_order) in local SQLite database
+- **FR-002**: System MUST store photo metadata (id, album_id, filepath, thumbnail_path, capture_date, file_size) in local SQLite database
+- **FR-003**: System MUST reference photo files by absolute filesystem path without copying/moving original files
+- **FR-004**: System MUST generate thumbnail images (200x200px) and cache them in application directory
+- **FR-005**: System MUST support JPEG, PNG, HEIC, and WebP image formats
+- **FR-006**: System MUST use virtual scrolling for album lists with >100 albums
+- **FR-007**: System MUST use virtual scrolling for photo grids with >100 photos
+- **FR-008**: System MUST extract EXIF metadata (capture date) from photos when available
+- **FR-009**: System MUST handle missing or moved photo files gracefully with placeholder thumbnails
+- **FR-010**: System MUST persist drag-and-drop reordering immediately to database
+```
+</Accordion>
+
+<Accordion title="Success Criteria (Measurable)">
+```markdown
+## Success Criteria
+
+### Measurable Outcomes
+
+- **SC-001**: Application loads and displays 500 albums within 2 seconds
+- **SC-002**: Scrolling through 1000 photos maintains 60fps (no frame drops)
+- **SC-003**: Adding 100 photos to an album completes within 5 seconds
+- **SC-004**: Drag-and-drop operations complete with <100ms perceived latency
+- **SC-005**: Thumbnail generation for 1000 photos completes in background within 30 seconds
+- **SC-006**: Album creation completes within 500ms
+- **SC-007**: Database queries for album/photo lists complete within 50ms
+- **SC-008**: Application uses <100MB memory with 10,000 photos loaded
+```
+</Accordion>
+
+<Note>
+  Notice the specification is **technology-agnostic**. No mention of Vite, React, or specific libraries yet. That comes in the plan.
+</Note>
+
+## Step 4: Clarify Requirements (Optional)
+
+If the spec has `[NEEDS CLARIFICATION]` markers, resolve them:
+
+```text
+/speckit.clarify
+```
+
+**Example clarification question:**
+
+<Accordion title="Question: Thumbnail Storage Location">
+```markdown
+## Question 1: Thumbnail Storage
+
+**Context**: The spec mentions generating thumbnails but doesn't specify where they're stored.
+
+**What we need to know**: Where should thumbnail images be stored?
+
+**Suggested Answers**:
+
+| Option | Answer | Implications |
+|--------|--------|-------------|
+| A | Store in application data directory (`~/.photo-organizer/thumbnails/`) | Clean separation, requires disk space, persists across app restarts |
+| B | Store in system temp directory | Automatic cleanup, regenerates on restart, saves disk space |
+| C | Store in SQLite as blobs | Single database file, increases DB size, slower queries |
+| Custom | Provide your own answer | Explain your preferred approach |
+
+**Your choice**: A - Store in application data directory for persistence
+```
+</Accordion>
+
+**Answer format:**
+```text
+Q1: A
+```
+
+The AI updates the spec with your answer and re-validates the checklist.
+
+## Step 5: Generate Technical Plan
+
+Now specify **how** to build it (tech stack and architecture):
+
+```text
+/speckit.plan The application uses Vite with a minimal number of libraries. 
+Use vanilla HTML, CSS, and JavaScript as much as possible to keep it simple. 
+Images are not uploaded anywhere - they stay on the local filesystem. 
+Metadata about albums and photo organization is stored in a local SQLite 
+database. Use the File System Access API for photo selection. Implement 
+virtual scrolling for performance with large photo collections. Use the 
+Web Workers API for thumbnail generation to avoid blocking the UI.
+```
+
+**What the AI generates:**
+
+<Steps>
+  <Step title="plan.md">
+    Technical architecture with phases:
+    - Phase -1: Constitution check
+    - Phase 0: Research unknowns
+    - Phase 1: Core data layer (SQLite setup, models)
+    - Phase 2: Thumbnail generation (Web Worker, caching)
+    - Phase 3: UI components (album grid, photo grid)
+    - Phase 4: Drag-and-drop (HTML5 Drag API)
+    - Phase 5: Virtual scrolling (intersection observer)
+  </Step>
+  
+  <Step title="research.md">
+    Technology decisions with rationale:
+    - SQLite library: `sql.js` (WebAssembly, runs in browser)
+    - Virtual scrolling: Custom implementation with IntersectionObserver
+    - Thumbnail generation: Canvas API in Web Worker
+    - File access: File System Access API with fallback to `<input type="file">`
+  </Step>
+  
+  <Step title="data-model.md">
+    Entity definitions:
+    - Album (id, name, created_date, sort_order)
+    - Photo (id, album_id, filepath, thumbnail_path, capture_date, file_size)
+    - Relationships and indexes
+  </Step>
+  
+  <Step title="contracts/">
+    Interface specifications:
+    - `database-api.md` - SQLite query interfaces
+    - `worker-api.md` - Web Worker message formats
+    - `storage-api.md` - IndexedDB schemas for thumbnails
+  </Step>
+  
+  <Step title="quickstart.md">
+    Development guide:
+    - Installing Vite and sql.js
+    - Running development server
+    - Running tests
+    - Building for production
+  </Step>
+</Steps>
+
+**Constitution check in plan.md:**
+
+<Accordion title="Constitution Validation">
+```markdown
+## Constitution Check
+
+### Article I: Simplicity First
+✓ PASS - Using vanilla JS, no React/Vue/Angular
+✓ PASS - Only 2 libraries: Vite (dev tool) + sql.js (database)
+✓ PASS - No unnecessary abstractions
+
+### Article II: Performance by Design
+✓ PASS - Virtual scrolling for large lists
+✓ PASS - Web Worker for thumbnail generation (non-blocking)
+✓ PASS - Database indexes on common queries
+✓ PASS - IndexedDB for thumbnail caching
+
+### Article III: Test-Driven Quality
+✓ PASS - Unit tests for database operations
+✓ PASS - Integration tests for file handling
+✓ PASS - E2E tests for drag-and-drop workflows
+
+### Article IV: Local-First Architecture
+✓ PASS - No cloud APIs or uploads
+✓ PASS - Photos stay in original locations
+✓ PASS - Metadata in local SQLite
+✓ PASS - Offline-capable (no network required)
+
+**RESULT**: All principles satisfied. Proceed to Phase 0.
+```
+</Accordion>
+
+<Warning>
+  If any constitution principles are violated, the AI will:
+  1. Flag the violation in the Constitution Check
+  2. Require justification in the Complexity Tracking table
+  3. Ask you to approve before proceeding
+</Warning>
+
+## Step 6: Validate Plan (Optional)
+
+Ask the AI to audit the plan for completeness:
+
+```text
+Please audit the implementation plan to ensure it addresses all 
+requirements from the spec. Check that:
+1. All functional requirements have corresponding implementation steps
+2. Performance requirements (virtual scrolling, thumbnail caching) are addressed
+3. The architecture aligns with our constitution principles
+4. No obvious gaps or missing pieces
+```
+
+The AI reviews the plan and suggests refinements if needed.
+
+## Step 7: Break Down Into Tasks
+
+Generate actionable tasks from the implementation plan:
+
+```text
+/speckit.tasks
+```
+
+**Generated tasks.md structure:**
+
+<Accordion title="Example Task Breakdown">
+```markdown
+# Task Breakdown: Photo Album Organizer
+
+## Phase 1: Core Data Layer
+
+### Tasks
+
+1. **[P] Set up project structure**
+   - File: `package.json`, `vite.config.js`
+   - Initialize Vite project
+   - Install sql.js dependency
+   - Configure build settings
+
+2. **[P] Create SQLite schema**
+   - File: `src/db/schema.sql`
+   - Create albums table with indexes
+   - Create photos table with indexes
+   - Add foreign key constraints
+
+3. **[P] Implement database wrapper**
+   - File: `src/db/database.js`
+   - Initialize sql.js
+   - Create CRUD operations for albums
+   - Create CRUD operations for photos
+   - Add transaction support
+
+4. **Write database tests**
+   - File: `tests/db/database.test.js`
+   - Test album CRUD operations
+   - Test photo CRUD operations
+   - Test transaction rollback
+   - Test database persistence
+
+**Checkpoint**: All database tests passing, can create/read/update/delete albums and photos
+
+---
+
+## Phase 2: Thumbnail Generation
+
+### Tasks
+
+1. **[P] Create Web Worker for thumbnail generation**
+   - File: `src/workers/thumbnail-worker.js`
+   - Accept photo file and generate 200x200 thumbnail
+   - Use Canvas API for resizing
+   - Extract EXIF metadata (capture date)
+   - Return thumbnail as blob
+
+2. **[P] Implement thumbnail cache**
+   - File: `src/services/thumbnail-cache.js`
+   - Store thumbnails in IndexedDB
+   - Implement LRU eviction (max 10,000 thumbnails)
+   - Add cache hit/miss tracking
+
+3. **[P] Create thumbnail service**
+   - File: `src/services/thumbnail-service.js`
+   - Coordinate Web Worker and cache
+   - Queue thumbnail generation requests
+   - Prioritize visible thumbnails
+
+4. **Write thumbnail tests**
+   - File: `tests/services/thumbnail-service.test.js`
+   - Test thumbnail generation
+   - Test cache hit/miss scenarios
+   - Test prioritization logic
+   - Test worker error handling
+
+**Checkpoint**: Can generate thumbnails without blocking UI, cache works correctly
+
+---
+
+## Phase 3: Album Grid UI
+
+### Tasks
+
+1. **Create album grid component**
+   - File: `src/components/album-grid.js`
+   - Render albums in responsive grid
+   - Display 2x2 photo preview collage
+   - Show album name and photo count
+   - Handle empty albums
+
+2. **Implement virtual scrolling**
+   - File: `src/components/virtual-scroll.js`
+   - Use IntersectionObserver API
+   - Render only visible albums (+buffer)
+   - Recycle DOM elements
+   - Maintain scroll position
+
+3. **Add album actions**
+   - File: `src/components/album-actions.js`
+   - Create new album dialog
+   - Rename album inline editing
+   - Delete album with confirmation
+   - Update UI optimistically
+
+4. **Write UI tests**
+   - File: `tests/components/album-grid.test.js`
+   - Test album rendering
+   - Test virtual scrolling
+   - Test CRUD operations
+   - Test keyboard navigation
+
+**Checkpoint**: Album grid displays, scrolls smoothly with 500+ albums, CRUD works
+
+[... Additional phases for photo grid, drag-and-drop, etc. ...]
+```
+</Accordion>
+
+**Key features of tasks.md:**
+- `[P]` markers indicate tasks that can run in parallel
+- Dependency ordering (database → services → UI)
+- Exact file paths for each task
+- Checkpoint validation after each phase
+
+## Step 8: Execute Implementation
+
+Execute all tasks and build the application:
+
+```text
+/speckit.implement
+```
+
+**The AI will:**
+
+<Steps>
+  <Step title="Validate prerequisites">
+    Checks that constitution, spec, plan, and tasks exist
+  </Step>
+  
+  <Step title="Review checklists">
+    Warns if any quality checklist items are incomplete
+  </Step>
+  
+  <Step title="Execute tasks sequentially">
+    Follows task order from tasks.md, respecting `[P]` markers
+  </Step>
+  
+  <Step title="Write tests before implementation">
+    Follows TDD: writes tests, verifies they fail, then implements
+  </Step>
+  
+  <Step title="Run commands">
+    Executes local CLI commands (`npm install`, `npm test`, `npm run dev`)
+  </Step>
+  
+  <Step title="Validate checkpoints">
+    Pauses at each checkpoint to verify functionality
+  </Step>
+</Steps>
+
+**Example output:**
+
+```text
+✓ Phase 1: Core Data Layer
+  ✓ Set up project structure (Vite initialized)
+  ✓ Created SQLite schema
+  ✓ Implemented database wrapper
+  ✓ Wrote database tests (15 tests passing)
+  ✓ Checkpoint: Database CRUD working
+
+✓ Phase 2: Thumbnail Generation
+  ✓ Created Web Worker
+  ✓ Implemented thumbnail cache
+  ✓ Created thumbnail service
+  ✓ Wrote thumbnail tests (12 tests passing)
+  ✓ Checkpoint: Thumbnails generate without UI blocking
+
+✓ Phase 3: Album Grid UI
+  ✓ Created album grid component
+  ✓ Implemented virtual scrolling
+  ✓ Added album actions
+  ✓ Wrote UI tests (20 tests passing)
+  ✓ Checkpoint: Album grid displays and scrolls smoothly
+
+[... Additional phases ...]
+
+✓ Implementation complete!
+  - Total files created: 32
+  - Total tests: 87 (all passing)
+  - Ready to run: npm run dev
+```
+
+<Warning>
+  **Common issues during implementation:**
+  
+  - **Tool not found**: Install required tools (`npm`, `node`, etc.)
+  - **Test failures**: AI will iterate to fix failing tests
+  - **Browser errors**: Copy console errors back to AI for fixes
+</Warning>
+
+## Step 9: Test and Validate
+
+Run the application and verify functionality:
+
+<CodeGroup>
+```bash Start Development Server
+npm run dev
+# Open http://localhost:5173
+```
+
+```bash Run Tests
+npm test
+# Should see all tests passing
+```
+
+```bash Build for Production
+npm run build
+npm run preview
+```
+</CodeGroup>
+
+**Validation checklist:**
+
+<Steps>
+  <Step title="Core Functionality">
+    - [ ] Create a new album
+    - [ ] Add photos from local filesystem
+    - [ ] View photos in album grid
+    - [ ] Delete an album
+  </Step>
+  
+  <Step title="Drag and Drop">
+    - [ ] Drag photo between albums
+    - [ ] Reorder albums
+    - [ ] Select multiple photos and move together
+  </Step>
+  
+  <Step title="Performance">
+    - [ ] Create 500 albums (should load in under 2 seconds)
+    - [ ] Add 1000 photos to an album (should scroll at 60fps)
+    - [ ] Generate thumbnails (should not block UI)
+  </Step>
+  
+  <Step title="Edge Cases">
+    - [ ] Move a photo file → placeholder shown
+    - [ ] Delete a photo file → graceful handling
+    - [ ] Open app with existing data → persists correctly
+  </Step>
+</Steps>
+
+## Step 10: Create Pull Request
+
+If using GitHub, create a PR with detailed description:
+
+```text
+Create a pull request from branch 001-photo-album-organizer to main. 
+Include a detailed description covering:
+- Feature overview
+- Key technical decisions
+- Testing approach
+- Performance optimizations
+- Screenshots or demo GIF if possible
+```
+
+The AI uses GitHub CLI (`gh pr create`) to create the PR automatically.
+
+## What You've Learned
+
+<CardGroup cols={2}>
+  <Card title="Constitution-Driven Design" icon="scale-balanced">
+    Principles guide all technical decisions consistently
+  </Card>
+  
+  <Card title="Specification as Source" icon="file-lines">
+    Technology-agnostic specs generate concrete implementations
+  </Card>
+  
+  <Card title="Structured Workflow" icon="diagram-project">
+    Each command builds on the previous, creating tight feedback
+  </Card>
+  
+  <Card title="Quality Gates" icon="shield-check">
+    Checklists and validation ensure completeness before proceeding
+  </Card>
+</CardGroup>
+
+## Common Pitfalls
+
+<Warning>
+  **Avoid these mistakes:**
+  
+  1. **Mixing spec and plan**: Don't mention tech stack in `/speckit.specify`
+  2. **Skipping constitution**: Principles prevent over-engineering later
+  3. **Ignoring checklists**: Incomplete specs lead to rework during planning
+  4. **Over-specifying**: Let AI make reasonable assumptions for minor details
+  5. **Skipping validation**: Test at checkpoints, don't wait until the end
+</Warning>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Brownfield Tutorial" icon="wrench" href="/examples/brownfield-enhancement">
+    Learn to add features to existing codebases
+  </Card>
+  
+  <Card title="Parallel Implementations" icon="code-branch" href="/examples/parallel-implementations">
+    Build the same feature with different tech stacks
+  </Card>
+  
+  <Card title="Command Reference" icon="book" href="/commands/overview">
+    Dive deep into each `/speckit.*` command
+  </Card>
+  
+  <Card title="Troubleshooting" icon="screwdriver-wrench" href="/advanced/troubleshooting">
+    Solutions to common issues
+  </Card>
+</CardGroup>

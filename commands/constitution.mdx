@@ -1,0 +1,433 @@
+---
+title: /speckit.constitution
+description: Create and maintain project constitution with governance principles
+---
+
+The `/speckit.constitution` command creates and updates your project's constitution - a living document that defines core principles, constraints, and governance rules.
+
+## Purpose
+
+The constitution serves as the **single source of truth** for project-wide decisions:
+
+- Non-negotiable technical principles
+- Complexity constraints and limitations
+- Quality standards and testing requirements
+- Architectural patterns and anti-patterns
+- Governance and amendment procedures
+
+<Note>
+  The constitution is **referenced by all other commands**. Plan validation, task generation, and implementation all check against constitutional principles.
+</Note>
+
+## Usage
+
+```bash
+# Create initial constitution interactively
+/speckit.constitution
+
+# Update with specific principles
+/speckit.constitution Add principle: All APIs must be versioned
+
+# Update governance section
+/speckit.constitution Update ratification date to 2024-03-15
+```
+
+## How It Works
+
+<Steps>
+  <Step title="Load Existing Constitution">
+    Reads `.specify/memory/constitution.md` and identifies all placeholder tokens like `[PROJECT_NAME]`, `[PRINCIPLE_1_NAME]`
+  </Step>
+  
+  <Step title="Collect Values">
+    Gathers values from:
+    - User input (your command arguments)
+    - Repository context (README, existing docs)
+    - Previous constitution versions
+    - Reasonable defaults for governance dates
+  </Step>
+  
+  <Step title="Fill Template">
+    Replaces all placeholders with concrete values:
+    - Project name and description
+    - Principle definitions with rationales
+    - Governance procedures
+    - Version information
+  </Step>
+  
+  <Step title="Propagate Changes">
+    Updates dependent templates:
+    - `plan-template.md` (Constitution Check section)
+    - `spec-template.md` (alignment requirements)
+    - `tasks-template.md` (principle-driven task types)
+    - Agent command files (if using specific AI assistants)
+  </Step>
+  
+  <Step title="Generate Report">
+    Creates a Sync Impact Report showing:
+    - Version change (old → new)
+    - Modified principles
+    - Templates requiring updates
+    - Follow-up TODOs
+  </Step>
+</Steps>
+
+## Constitution Structure
+
+### Metadata Section
+
+```markdown
+# Project Constitution: [PROJECT_NAME]
+
+**Version**: [CONSTITUTION_VERSION]  
+**Ratified**: [RATIFICATION_DATE]  
+**Last Amended**: [LAST_AMENDED_DATE]
+```
+
+### Core Principles
+
+Each principle includes:
+- **Name**: Short, memorable identifier
+- **Rule**: Non-negotiable MUST/SHOULD statements
+- **Rationale**: Why this principle exists
+
+<CodeGroup>
+```markdown Simplicity Principle
+### Principle 1: Simplicity First
+
+**Rule**: The project MUST favor the simplest solution that meets requirements.
+
+**Rationale**: Complexity is the enemy of maintainability. We optimize for:
+- Code readability over cleverness
+- Explicit behavior over implicit magic
+- Boring, proven patterns over novel approaches
+
+**Application**:
+- Maximum of 3 core projects/services
+- No repository pattern unless data access complexity justifies it
+- Avoid premature abstraction
+```
+
+```markdown Testing Principle
+### Principle 2: Test-Driven Quality
+
+**Rule**: All features MUST have:
+- Contract tests for external interfaces
+- Integration tests for critical user journeys
+- Unit tests for complex business logic
+
+**Rationale**: Tests are documentation that never lies. They:
+- Prevent regressions
+- Enable confident refactoring
+- Serve as living examples
+
+**Application**:
+- Tests written before implementation (TDD)
+- Minimum 80% code coverage for business logic
+- All CI/CD gates require passing tests
+```
+
+```markdown Security Principle
+### Principle 3: Security By Default
+
+**Rule**: The project MUST:
+- Encrypt all data in transit and at rest
+- Validate all user input
+- Follow OWASP Top 10 guidelines
+- Audit all authentication/authorization changes
+
+**Rationale**: Security cannot be bolted on later. Building it in from the start:
+- Reduces vulnerability surface area
+- Prevents costly security retrofits
+- Protects user trust
+
+**Application**:
+- Security review required for all auth changes
+- Automated dependency vulnerability scanning
+- Principle of least privilege for all system access
+```
+</CodeGroup>
+
+### Governance Section
+
+```markdown
+## Governance
+
+### Amendment Procedure
+1. Propose change via pull request
+2. Justify with concrete use case
+3. Require approval from [ROLE/TEAM]
+4. Update version according to semantic versioning
+5. Propagate to all dependent templates
+
+### Versioning Policy
+- **MAJOR**: Backward incompatible principle changes
+- **MINOR**: New principles added
+- **PATCH**: Clarifications and wording improvements
+
+### Compliance Review
+- Quarterly review of all features for constitutional alignment
+- Violations must be documented and justified
+- Technical debt items created for gradual remediation
+```
+
+## Versioning
+
+The constitution uses semantic versioning:
+
+<Note>
+  **MAJOR.MINOR.PATCH**
+  
+  - **MAJOR**: Backward incompatible changes (principle removals, redefinitions)
+  - **MINOR**: New principles or expanded guidance
+  - **PATCH**: Clarifications, typo fixes, wording improvements
+</Note>
+
+### Version Examples
+
+- `1.0.0 → 2.0.0`: Removed "Microservices First" principle
+- `1.0.0 → 1.1.0`: Added "API Versioning" principle
+- `1.1.0 → 1.1.1`: Clarified wording in Principle 2
+
+## Consistency Propagation
+
+When the constitution changes, the command updates:
+
+### Templates
+
+- **plan-template.md**: Updates Constitution Check gates
+- **spec-template.md**: Aligns requirement sections
+- **tasks-template.md**: Updates task categorization
+- **commands/*.md**: Removes agent-specific references
+
+### Documentation
+
+- **README.md**: Updates principle references
+- **docs/quickstart.md**: Reflects new constraints
+- Agent context files (if applicable)
+
+## Validation
+
+Before finalizing, the command validates:
+
+<Steps>
+  <Step title="No Unexplained Placeholders">
+    All `[BRACKETED_TOKENS]` must be replaced (or explicitly justified)
+  </Step>
+  
+  <Step title="Version Matches Report">
+    Version number in document matches Sync Impact Report
+  </Step>
+  
+  <Step title="Dates in ISO Format">
+    All dates follow `YYYY-MM-DD` format
+  </Step>
+  
+  <Step title="Declarative Principles">
+    Uses MUST/SHOULD/MAY keywords (not vague "should consider")
+  </Step>
+</Steps>
+
+## Real-World Example
+
+<CodeGroup>
+```bash Initial Constitution
+/speckit.constitution
+```
+
+```markdown Output: constitution.md
+# Project Constitution: Task Tracker API
+
+**Version**: 1.0.0  
+**Ratified**: 2024-03-01  
+**Last Amended**: 2024-03-01
+
+## Purpose
+
+This constitution defines the non-negotiable principles governing the Task Tracker API project.
+
+## Core Principles
+
+### Principle 1: API-First Design
+
+**Rule**: All features MUST be designed as RESTful API endpoints before implementation.
+
+**Rationale**: API-first design ensures:
+- Clear contracts between frontend and backend
+- Easy integration with third-party services
+- Consistent interface patterns
+
+**Application**:
+- OpenAPI spec required before coding
+- Contract tests validate API behavior
+- Breaking changes require major version bump
+
+### Principle 2: Stateless Architecture
+
+**Rule**: The API MUST NOT maintain session state on the server.
+
+**Rationale**: Stateless design enables:
+- Horizontal scaling without sticky sessions
+- Simple deployment and load balancing
+- Easier debugging and testing
+
+**Application**:
+- JWT tokens for authentication
+- No server-side session storage
+- All request context in headers or payload
+
+### Principle 3: Comprehensive Testing
+
+**Rule**: All endpoints MUST have:
+- Contract tests (API schema validation)
+- Integration tests (happy path + error cases)
+- Performance tests (response time < 200ms)
+
+**Rationale**: Comprehensive testing prevents:
+- Breaking changes shipping to production
+- Performance regressions
+- Incomplete error handling
+
+**Application**:
+- Tests written before implementation (TDD)
+- CI/CD pipeline blocks on test failures
+- Performance benchmarks tracked over time
+
+## Governance
+
+### Amendment Procedure
+1. Create issue documenting proposed change
+2. Justify with real-world use case or constraint
+3. Require approval from tech lead
+4. Update version and propagate to templates
+
+### Versioning Policy
+- MAJOR: Principle removal or incompatible change
+- MINOR: New principle added
+- PATCH: Wording clarification
+```
+
+```bash Update Constitution
+/speckit.constitution Add principle: All database queries must use prepared statements
+```
+
+```markdown Updated: constitution.md
+<!-- HTML comment at top -->
+<!--
+  Sync Impact Report
+  Version: 1.0.0 → 1.1.0
+  Date: 2024-03-15
+  
+  Changes:
+  - Added: Principle 4 (Database Security)
+  
+  Templates Updated:
+  ✅ .specify/templates/plan-template.md
+  ✅ .specify/templates/tasks-template.md
+  
+  Follow-up: None
+-->
+
+# Project Constitution: Task Tracker API
+
+**Version**: 1.1.0  
+**Ratified**: 2024-03-01  
+**Last Amended**: 2024-03-15
+
+[...existing principles...]
+
+### Principle 4: Database Security
+
+**Rule**: All database queries MUST use prepared statements or ORM query builders.
+
+**Rationale**: Prepared statements prevent:
+- SQL injection vulnerabilities
+- Accidental data exposure
+- Query performance issues from ad-hoc string concatenation
+
+**Application**:
+- No raw SQL string concatenation
+- Use SQLAlchemy ORM or parameterized queries
+- Security review for all data access code
+```
+</CodeGroup>
+
+## Common Principles
+
+### Technical Constraints
+
+- **Complexity Limits**: "Maximum 3 microservices"
+- **Technology Stack**: "Python 3.11+ only, no version mixing"
+- **Performance**: "API responses < 200ms p95"
+- **Dependencies**: "Only well-maintained libraries (updated in last 6 months)"
+
+### Quality Standards
+
+- **Testing**: "80% code coverage minimum"
+- **Documentation**: "All public APIs documented with examples"
+- **Code Review**: "No direct commits to main, all changes via PR"
+- **Security**: "OWASP Top 10 compliance required"
+
+### Architectural Patterns
+
+- **Separation of Concerns**: "Controllers → Services → Repositories"
+- **Error Handling**: "Centralized error handler, no silent failures"
+- **Configuration**: "Environment-based config, no hardcoded values"
+- **Observability**: "Structured logging, metrics, and tracing required"
+
+## Handoffs
+
+After updating the constitution:
+
+<CardGroup cols={2}>
+  <Card title="Build Specification" icon="file-lines" href="/commands/specify">
+    Create a feature spec that aligns with updated principles
+  </Card>
+  
+  <Card title="Technical Plan" icon="sitemap" href="/commands/plan">
+    Plan will validate against the new constitution
+  </Card>
+</CardGroup>
+
+## Best Practices
+
+### Keep Principles Testable
+
+<Warning>
+  Avoid vague principles like "Code should be clean." Instead, use measurable criteria: "Functions must be < 50 lines, cyclomatic complexity < 10."
+</Warning>
+
+### Document Rationale
+
+Every principle should explain **why** it exists:
+- What problem does it solve?
+- What pain does it prevent?
+- What trade-offs does it accept?
+
+### Version Thoughtfully
+
+Only increment MAJOR version when absolutely necessary:
+- Removing a principle is MAJOR
+- Relaxing a constraint is MINOR
+- Adding clarification is PATCH
+
+### Review Regularly
+
+Schedule periodic reviews:
+- Quarterly: Check if principles still serve the project
+- After major features: Validate no violations occurred
+- When pain points emerge: Consider if constitution needs updating
+
+## File Location
+
+```text
+.specify/
+└── memory/
+    └── constitution.md    # Your project constitution
+```
+
+## Next Steps
+
+<Card title="Specify" icon="file-lines" href="/commands/specify">
+  Create feature specifications that align with your constitution
+</Card>

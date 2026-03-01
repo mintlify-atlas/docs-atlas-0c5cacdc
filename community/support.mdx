@@ -1,0 +1,192 @@
+---
+title: Support
+description: Get help using Spec Kit and connect with the community
+---
+
+This page provides resources for getting help with Spec Kit and the Spec-Driven Development methodology.
+
+## Getting Help
+
+We use GitHub issues to track bugs and feature requests. Before filing a new issue, please search existing issues to avoid duplicates.
+
+<CardGroup cols={2}>
+  <Card title="Report a Bug" icon="bug" href="https://github.com/github/spec-kit/issues/new">
+    Found a problem? Let us know so we can fix it
+  </Card>
+  <Card title="Request a Feature" icon="lightbulb" href="https://github.com/github/spec-kit/issues/new">
+    Have an idea for improvement? We'd love to hear it
+  </Card>
+  <Card title="Ask a Question" icon="circle-question" href="https://github.com/github/spec-kit/issues/new">
+    Not sure how something works? Open an issue
+  </Card>
+  <Card title="Read the Docs" icon="book-open" href="https://github.com/github/spec-kit/blob/main/spec-driven.md">
+    Comprehensive guide to Spec-Driven Development
+  </Card>
+</CardGroup>
+
+## Before Opening an Issue
+
+<Accordion title="Search Existing Issues">
+  Someone may have already reported your problem or requested your feature. Search the [issue tracker](https://github.com/github/spec-kit/issues) before creating a new issue to avoid duplicates.
+</Accordion>
+
+<Accordion title="Gather Information">
+  For bug reports, collect:
+  - Spec Kit version (`specify --version`)
+  - Operating system and version
+  - AI agent being used (Claude, Copilot, etc.)
+  - Steps to reproduce the issue
+  - Expected vs actual behavior
+  - Relevant error messages or logs
+</Accordion>
+
+<Accordion title="Check Documentation">
+  Review these resources first:
+  - [README](https://github.com/github/spec-kit/blob/main/README.md) - Getting started and troubleshooting
+  - [Spec-Driven Development Guide](https://github.com/github/spec-kit/blob/main/spec-driven.md) - Detailed methodology documentation
+  - [CONTRIBUTING.md](https://github.com/github/spec-kit/blob/main/CONTRIBUTING.md) - Development and contribution guidelines
+</Accordion>
+
+## What to Include in Issues
+
+### Bug Reports
+
+Help us fix bugs faster by including:
+
+- **Clear title** - Briefly describe the problem
+- **Description** - Detailed explanation of the issue
+- **Reproduction steps** - Step-by-step instructions to reproduce
+- **Expected behavior** - What should happen
+- **Actual behavior** - What actually happens
+- **Environment** - OS, Spec Kit version, AI agent, Python version
+- **Logs/Screenshots** - Error messages, terminal output, or screenshots
+
+### Feature Requests
+
+Make your feature request compelling:
+
+- **Use case** - Explain why you need this feature
+- **Current workaround** - How do you handle this now?
+- **Proposed solution** - Your idea for implementing it
+- **Alternatives** - Other approaches you've considered
+- **Impact** - Who benefits and how?
+
+### Questions
+
+For questions about using Spec Kit:
+
+- **Context** - What are you trying to accomplish?
+- **What you tried** - Steps you've already taken
+- **Specific question** - Clear, focused question
+- **Documentation reviewed** - Which docs you've checked
+
+## Common Questions
+
+<Accordion title="Which AI agents are supported?">
+  Spec Kit supports multiple AI coding agents including:
+  - Claude Code
+  - GitHub Copilot
+  - Cursor
+  - Gemini CLI
+  - Qwen Code
+  - opencode
+  - Windsurf
+  - Amazon Q Developer CLI
+  - And many more!
+
+  See the [full list of supported agents](https://github.com/github/spec-kit/blob/main/README.md#-supported-ai-agents) in the README.
+</Accordion>
+
+<Accordion title="How do I upgrade Spec Kit?">
+  To upgrade to the latest version:
+  ```bash
+  uv tool install specify-cli --force --from git+https://github.com/github/spec-kit.git
+  ```
+
+  See the [upgrade guide](https://github.com/github/spec-kit/blob/main/docs/upgrade.md) for detailed instructions.
+</Accordion>
+
+<Accordion title="Can I use Spec Kit with my preferred tech stack?">
+  Yes! Spec Kit is technology-independent. During the planning phase (`/speckit.plan`), you specify your preferred tech stack (.NET, Node.js, Python, etc.) and Spec Kit adapts accordingly.
+</Accordion>
+
+<Accordion title="How do I check if required tools are installed?">
+  Run the check command:
+  ```bash
+  specify check
+  ```
+
+  This verifies installation of Git, Python, uv, and your selected AI agent CLI tools.
+</Accordion>
+
+<Accordion title="What if my AI agent isn't officially supported?">
+  Use the generic agent option:
+  ```bash
+  specify init my-project --ai generic --ai-commands-dir .myagent/commands/
+  ```
+
+  This works with most agents that support custom commands. Consider opening an issue to request official support!
+</Accordion>
+
+## Troubleshooting Resources
+
+### Git Credential Manager on Linux
+
+If you're having Git authentication issues on Linux, install Git Credential Manager:
+
+```bash
+#!/usr/bin/env bash
+set -e
+echo "Downloading Git Credential Manager v2.6.1..."
+wget https://github.com/git-ecosystem/git-credential-manager/releases/download/v2.6.1/gcm-linux_amd64.2.6.1.deb
+echo "Installing Git Credential Manager..."
+sudo dpkg -i gcm-linux_amd64.2.6.1.deb
+echo "Configuring Git to use GCM..."
+git config --global credential.helper manager
+echo "Cleaning up..."
+rm gcm-linux_amd64.2.6.1.deb
+```
+
+### Common Installation Issues
+
+<Accordion title="uv not found">
+  Install uv package manager:
+  ```bash
+  curl -LsSf https://astral.sh/uv/install.sh | sh
+  ```
+  Then restart your terminal or source your shell configuration.
+</Accordion>
+
+<Accordion title="Python version too old">
+  Spec Kit requires Python 3.11 or later. Check your version:
+  ```bash
+  python --version
+  ```
+  Download the latest Python from [python.org](https://www.python.org/downloads/).
+</Accordion>
+
+<Accordion title="AI agent CLI not detected">
+  Make sure your AI agent's CLI tool is installed and in your PATH:
+  - Claude Code: `claude --version`
+  - Gemini CLI: `gemini --version`
+  - Cursor: `cursor-agent --version`
+
+  If the tool isn't found, reinstall it or add its location to your PATH.
+</Accordion>
+
+## Project Status
+
+<Info>
+Spec Kit is under active development and maintained by GitHub staff **AND THE COMMUNITY**. We do our best to respond to support requests, feature requests, and community questions in a timely manner.
+</Info>
+
+Response times vary based on:
+- Complexity of the issue
+- Availability of maintainers
+- Community involvement
+
+For urgent enterprise needs, consider contributing directly or engaging with GitHub professional services.
+
+## GitHub Support Policy
+
+Support for this project is limited to the resources listed on this page. For general GitHub support unrelated to Spec Kit, visit [GitHub Support](https://support.github.com/).

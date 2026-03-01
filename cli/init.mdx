@@ -1,0 +1,362 @@
+---
+title: specify init
+description: Initialize a new Specify project with AI assistant integration
+---
+
+## Overview
+
+The `specify init` command bootstraps a new project with the GitHub Spec Kit framework. It downloads the latest template from the Spec Kit repository, extracts it to your project directory, and configures it for your chosen AI assistant.
+
+## Usage
+
+```bash
+specify init [PROJECT_NAME] [OPTIONS]
+```
+
+## Arguments
+
+<ParamField path="PROJECT_NAME" type="string" optional>
+  Name for your new project directory. Use `.` or `--here` to initialize in the current directory.
+</ParamField>
+
+## Options
+
+### AI Assistant Configuration
+
+<ParamField path="--ai" type="string" optional>
+  AI assistant to use for the project. Available options:
+  - `claude` — Claude Code CLI
+  - `gemini` — Gemini CLI
+  - `copilot` — GitHub Copilot (default)
+  - `cursor-agent` — Cursor CLI
+  - `qwen` — Qwen Code CLI
+  - `opencode` — opencode CLI
+  - `codex` — Codex CLI
+  - `windsurf` — Windsurf IDE
+  - `kilocode` — Kilo Code IDE
+  - `auggie` — Auggie CLI
+  - `codebuddy` — CodeBuddy CLI
+  - `qodercli` — Qoder CLI
+  - `q` — Amazon Q Developer CLI
+  - `amp` — Amp CLI
+  - `shai` — SHAI CLI
+  - `agy` — Antigravity IDE
+  - `bob` — IBM Bob IDE
+  - `roo` — Roo Code IDE
+  - `generic` — Custom agent (requires `--ai-commands-dir`)
+  
+  If not specified, you'll be prompted to choose interactively.
+</ParamField>
+
+<ParamField path="--ai-commands-dir" type="string" optional>
+  Custom directory for agent command files. Required when using `--ai generic`. Example: `.myagent/commands/`
+</ParamField>
+
+<ParamField path="--ai-skills" type="boolean" default={false}>
+  Install Prompt.MD templates as agent skills following the [agentskills.io](https://agentskills.io/specification) specification. Skills are installed to the agent-specific skills directory (e.g., `.claude/skills/` for Claude).
+  
+  When enabled:
+  - Command templates are converted to skills with enhanced descriptions
+  - Skills include metadata following agentskills.io format
+  - On new projects, extracted command files are removed (skills replace commands)
+  - On existing projects (`--here`), existing commands are preserved
+  
+  Requires `--ai` to be specified.
+</ParamField>
+
+### Location Options
+
+<ParamField path="--here" type="boolean" default={false}>
+  Initialize the project in the current directory instead of creating a new directory. Template files will be merged with existing content.
+  
+  If the current directory is not empty, you'll be prompted for confirmation unless `--force` is specified.
+</ParamField>
+
+<ParamField path="--force" type="boolean" default={false}>
+  Skip confirmation when using `--here` in a non-empty directory. Template files will overwrite existing files with the same names.
+</ParamField>
+
+### Script Configuration
+
+<ParamField path="--script" type="string" optional>
+  Script type to use:
+  - `sh` — POSIX Shell (bash/zsh) for Unix-like systems
+  - `ps` — PowerShell for Windows
+  
+  If not specified, defaults to `ps` on Windows and `sh` on Unix-like systems. You can choose interactively if running in a terminal.
+</ParamField>
+
+### Git Configuration
+
+<ParamField path="--no-git" type="boolean" default={false}>
+  Skip git repository initialization. By default, Specify will:
+  1. Initialize a new git repository (if git is available)
+  2. Add all files to staging
+  3. Create an initial commit
+  
+  This flag bypasses all git operations.
+</ParamField>
+
+### Tool Validation
+
+<ParamField path="--ignore-agent-tools" type="boolean" default={false}>
+  Skip checks for AI agent CLI tools. Useful when:
+  - The agent is IDE-based (doesn't have a CLI)
+  - You want to set up the project structure before installing the agent
+  - You're using a custom workflow
+</ParamField>
+
+### Network Options
+
+<ParamField path="--skip-tls" type="boolean" default={false}>
+  Skip SSL/TLS verification when downloading templates. **Not recommended** except for debugging network issues in controlled environments.
+</ParamField>
+
+<ParamField path="--github-token" type="string" optional>
+  GitHub personal access token for API requests. Increases rate limits from 60/hour (unauthenticated) to 5,000/hour (authenticated).
+  
+  Can also be set via environment variables:
+  - `GH_TOKEN`
+  - `GITHUB_TOKEN`
+</ParamField>
+
+### Debugging
+
+<ParamField path="--debug" type="boolean" default={false}>
+  Show verbose diagnostic output for network and extraction failures. Displays:
+  - Python version and platform information
+  - Current working directory
+  - Extended error messages with response bodies
+  - Detailed extraction logs
+</ParamField>
+
+## Examples
+
+### Basic Usage
+
+Create a new project with interactive AI selection:
+
+```bash
+specify init my-project
+```
+
+### Specific AI Assistant
+
+Create a project configured for Claude Code:
+
+```bash
+specify init my-project --ai claude
+```
+
+### Initialize in Current Directory
+
+Add Spec Kit to an existing project:
+
+```bash
+# Using the dot notation
+specify init . --ai copilot
+
+# Or using the --here flag
+specify init --here --ai copilot
+```
+
+### Force Overwrite
+
+Initialize in a non-empty directory without confirmation:
+
+```bash
+specify init --here --ai claude --force
+```
+
+### Without Git
+
+Skip git repository initialization:
+
+```bash
+specify init my-project --ai claude --no-git
+```
+
+### Custom Agent
+
+Use an unsupported agent with custom command directory:
+
+```bash
+specify init my-project --ai generic --ai-commands-dir .myagent/commands/
+```
+
+### With Agent Skills
+
+Install agent skills instead of command files:
+
+```bash
+# For a new project
+specify init my-project --ai claude --ai-skills
+
+# In current directory
+specify init --here --ai gemini --ai-skills
+```
+
+### Custom Script Type
+
+Force a specific script type:
+
+```bash
+# Use PowerShell scripts on Unix
+specify init my-project --ai claude --script ps
+
+# Use shell scripts on Windows
+specify init my-project --ai claude --script sh
+```
+
+### With Authentication
+
+Use a GitHub token for higher rate limits:
+
+```bash
+specify init my-project --ai claude --github-token ghp_xxxxxxxxxxxx
+
+# Or set environment variable
+export GITHUB_TOKEN=ghp_xxxxxxxxxxxx
+specify init my-project --ai claude
+```
+
+### Debug Mode
+
+Troubleshoot initialization issues:
+
+```bash
+specify init my-project --ai claude --debug
+```
+
+## What Happens During Initialization
+
+The `init` command performs the following steps:
+
+1. **Tool Checks** — Verifies git is available (unless `--no-git`)
+2. **AI Selection** — Prompts for AI assistant if not specified
+3. **Script Selection** — Chooses script type based on platform
+4. **Download Template** — Fetches the latest release from GitHub
+5. **Extract Files** — Unpacks template to project directory
+6. **Configure Agent** — Sets up AI assistant-specific files
+7. **Set Permissions** — Makes scripts executable (Unix-like systems)
+8. **Initialize Constitution** — Copies constitution template to memory
+9. **Install Skills** — Converts commands to skills (if `--ai-skills`)
+10. **Initialize Git** — Creates repository and initial commit (unless `--no-git`)
+
+## Post-Initialization
+
+After successful initialization, you'll see:
+
+- **Success Summary** — Tree view of completed steps
+- **Security Notice** — Reminder about agent folder credentials
+- **Next Steps** — Suggested workflow commands
+- **Enhancement Commands** — Optional quality improvement tools
+
+### Next Steps Example
+
+```bash
+# Navigate to project (if not using --here)
+cd my-project
+
+# Start the spec-driven workflow
+/speckit.constitution    # Establish project principles
+/speckit.specify         # Create baseline specification
+/speckit.plan           # Create implementation plan
+/speckit.tasks          # Generate actionable tasks
+/speckit.implement      # Execute implementation
+```
+
+## Troubleshooting
+
+### Rate Limiting
+
+If you encounter rate limit errors:
+
+```
+GitHub API returned status 403 for https://api.github.com/...
+Rate Limit: 60 requests/hour
+Remaining: 0
+```
+
+**Solution**: Use a GitHub token:
+
+```bash
+specify init my-project --ai claude --github-token ghp_xxxxxxxxxxxx
+```
+
+### Agent CLI Not Found
+
+If you see an agent detection error:
+
+```
+Agent Detection Error
+claude not found
+Install from: https://docs.anthropic.com/...
+```
+
+**Solutions**:
+1. Install the required CLI tool
+2. Use `--ignore-agent-tools` to skip the check
+
+### Directory Already Exists
+
+If the project directory exists:
+
+```
+Directory Conflict
+Directory 'my-project' already exists
+```
+
+**Solutions**:
+1. Choose a different project name
+2. Remove the existing directory
+3. Use `--here` to merge with current directory
+
+### Git Initialization Failed
+
+If git initialization fails, you can initialize manually:
+
+```bash
+cd my-project
+git init
+git add .
+git commit -m "Initial commit"
+```
+
+## Special Considerations
+
+### Codex CLI Setup
+
+When using `--ai codex`, you must set the `CODEX_HOME` environment variable:
+
+```bash
+# Unix-like systems
+export CODEX_HOME=/path/to/project/.codex
+
+# Windows
+setx CODEX_HOME C:\path\to\project\.codex
+```
+
+### Generic Agent Setup
+
+For generic agents, the placeholder `.speckit/commands/` directory is renamed to your specified `--ai-commands-dir` path:
+
+```bash
+specify init my-project --ai generic --ai-commands-dir .myagent/workflows/
+# Creates: .myagent/workflows/ with command templates
+```
+
+### Merge Behavior with --here
+
+When using `--here` in an existing directory:
+
+- Directories are **merged** (not replaced)
+- Files with the same name are **overwritten**
+- `.vscode/settings.json` is **merged** (special case)
+- Constitution file is **preserved** if it exists
+
+## Related Commands
+
+- [`specify check`](/cli/check) — Verify tool installation before init
+- [`specify version`](/cli/commands#version) — Check CLI and template versions
+- [`specify extension add`](/cli/commands#extension-add) — Install extensions after init

@@ -1,0 +1,751 @@
+---
+title: /speckit.plan
+description: Generate technical architecture and design decisions
+---
+
+The `/speckit.plan` command executes the implementation planning workflow, transforming your feature specification into concrete technical architecture, design decisions, and development artifacts.
+
+## Purpose
+
+Generate production-ready design documents:
+- Research and resolve all technical unknowns
+- Define data models and entity relationships
+- Create API contracts and interface specifications
+- Document technology stack and architecture decisions
+- Update AI agent context with project specifics
+- Validate against constitution principles
+
+<Note>
+  Planning focuses on **how** to build the feature (architecture, tech stack, design patterns) while specifications focus on **what** to build (requirements, user value).
+</Note>
+
+## Usage
+
+```bash
+# Create implementation plan with tech stack hints
+/speckit.plan I am building with Python and FastAPI
+
+# Plan with specific constraints
+/speckit.plan Using TypeScript, React, and PostgreSQL. Must support 10k concurrent users
+
+# Plan without hints (AI infers from project context)
+/speckit.plan
+```
+
+## How It Works
+
+<Steps>
+  <Step title="Setup">
+    Runs setup script and parses JSON for:
+    - `FEATURE_SPEC`: Path to spec.md
+    - `IMPL_PLAN`: Path to plan.md (newly created from template)
+    - `SPECS_DIR`: Feature directory
+    - `BRANCH`: Current feature branch name
+  </Step>
+  
+  <Step title="Load Context">
+    Reads:
+    - Feature specification (spec.md)
+    - Project constitution (.specify/memory/constitution.md)
+    - Plan template (already copied to feature directory)
+  </Step>
+  
+  <Step title="Fill Technical Context">
+    Populates plan.md Technical Context section:
+    - Language/Version (from user input or project files)
+    - Primary Dependencies (framework, libraries)
+    - Storage (database, file system, cache)
+    - Testing approach (framework, strategy)
+    - Target Platform (server, mobile, desktop, browser)
+    - Project Type (library, CLI, web service, mobile app)
+    - Performance Goals (latency, throughput)
+    - Constraints (memory, offline, compliance)
+    - Scale/Scope (users, data volume, complexity)
+    
+    Marks unknowns as "NEEDS CLARIFICATION"
+  </Step>
+  
+  <Step title="Constitution Check">
+    Validates against constitutional principles:
+    - Complexity limits (e.g., max 3 services)
+    - Architectural patterns (required/forbidden)
+    - Technology constraints
+    - Quality gates (testing, security, observability)
+    
+    Errors on violations unless justified in Complexity Tracking table
+  </Step>
+  
+  <Step title="Phase 0: Research">
+    For each "NEEDS CLARIFICATION" in Technical Context:
+    - Research best practices for the domain
+    - Evaluate technology options
+    - Document decisions with rationale
+    - Consider alternatives
+    
+    Generates `research.md` with all unknowns resolved
+  </Step>
+  
+  <Step title="Phase 1: Design">
+    Creates design artifacts:
+    
+    **data-model.md**: Entity definitions
+    - Extract entities from spec.md
+    - Define fields, types, relationships
+    - Add validation rules from requirements
+    - Document state transitions
+    
+    **contracts/**: Interface specifications
+    - API endpoints (for web services)
+    - CLI command schemas (for CLI tools)
+    - Public interfaces (for libraries)
+    - Event schemas (for event-driven systems)
+    
+    **quickstart.md**: Integration guide
+    - Development environment setup
+    - Running tests
+    - Common workflows
+    - Example usage scenarios
+  </Step>
+  
+  <Step title="Phase 1: Agent Context Update">
+    Runs agent-specific script to update AI assistant context:
+    - Detects which AI agent is in use
+    - Updates agent context file (e.g., `.claude/commands/specify-context.md`)
+    - Adds new technologies from current plan
+    - Preserves manual additions between markers
+  </Step>
+  
+  <Step title="Re-evaluate Constitution">
+    Post-design constitution check:
+    - Verify design doesn't violate principles
+    - Ensure complexity tracking justifies any violations
+    - Confirm quality gates can be met
+  </Step>
+  
+  <Step title="Report Completion">
+    Outputs:
+    - Branch name
+    - Path to plan.md
+    - List of generated artifacts
+    - Suggested next command: `/speckit.tasks`
+  </Step>
+</Steps>
+
+## Plan Structure
+
+### Metadata
+
+```markdown
+# Implementation Plan: User Authentication
+
+**Branch**: `003-user-auth` | **Date**: 2024-03-15 | **Spec**: [link]
+```
+
+### Summary
+
+High-level overview extracted from spec:
+
+```markdown
+## Summary
+
+Implement user authentication system supporting email/password login, password reset via email, and OAuth2 social login (Google, GitHub). System must securely hash passwords, enforce password policies, lock accounts after failed attempts, and maintain session security.
+```
+
+### Technical Context
+
+Concrete technology decisions:
+
+<CodeGroup>
+```markdown Tech Stack
+## Technical Context
+
+**Language/Version**: Python 3.11  
+**Primary Dependencies**: FastAPI 0.104, SQLAlchemy 2.0, Pydantic 2.5  
+**Storage**: PostgreSQL 15 (user accounts, sessions), Redis 7 (session cache)  
+**Testing**: pytest 7.4, pytest-asyncio, httpx (for API testing)  
+**Target Platform**: Linux server (Docker containers)  
+**Project Type**: RESTful web service  
+**Performance Goals**: 
+  - Login endpoint: < 200ms p95
+  - Password reset email: < 1 minute delivery
+  - Support 1,000 concurrent login attempts  
+**Constraints**: 
+  - GDPR compliance required (data export/deletion)
+  - Must integrate with existing user profile service
+  - Offline capability not required  
+**Scale/Scope**: 
+  - Expected: 10,000 active users
+  - Session data: ~1MB per 1000 active sessions
+  - OAuth providers: Google, GitHub (extensible for more)
+```
+
+```markdown Project Structure
+## Project Structure
+
+### Documentation (this feature)
+
+```text
+specs/003-user-auth/
+├── spec.md              # Feature specification
+├── plan.md              # This file
+├── research.md          # Technical research and decisions
+├── data-model.md        # Entity definitions
+├── quickstart.md        # Development guide
+└── contracts/           # API specifications
+    ├── auth.md          # Authentication endpoints
+    └── oauth.md         # OAuth2 flow endpoints
+```
+
+### Source Code (repository root)
+
+```text
+backend/
+├── src/
+│   ├── models/
+│   │   ├── user.py
+│   │   ├── session.py
+│   │   ├── password_reset.py
+│   │   └── oauth_connection.py
+│   ├── services/
+│   │   ├── auth_service.py
+│   │   ├── password_service.py
+│   │   └── oauth_service.py
+│   ├── api/
+│   │   ├── auth.py
+│   │   └── oauth.py
+│   └── middleware/
+│       └── session_auth.py
+└── tests/
+    ├── contract/
+    │   ├── test_auth_api.py
+    │   └── test_oauth_api.py
+    ├── integration/
+    │   ├── test_login_flow.py
+    │   ├── test_password_reset_flow.py
+    │   └── test_oauth_flow.py
+    └── unit/
+        ├── test_auth_service.py
+        └── test_password_service.py
+```
+```
+</CodeGroup>
+
+### Constitution Check
+
+Validation against project principles:
+
+```markdown
+## Constitution Check
+
+*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+
+### Principle 1: Simplicity First
+✓ PASS - Single backend service, no microservices complexity
+✓ PASS - Direct database access via SQLAlchemy ORM (no repository pattern)
+✓ PASS - Standard FastAPI patterns, no custom frameworks
+
+### Principle 2: Test-Driven Quality
+✓ PASS - Contract tests for all API endpoints
+✓ PASS - Integration tests for each user journey
+✓ PASS - Unit tests for password hashing and session logic
+✓ PASS - Tests written before implementation (TDD approach)
+
+### Principle 3: Security By Default
+✓ PASS - Bcrypt for password hashing
+✓ PASS - HTTPS enforced for all endpoints
+✓ PASS - Input validation via Pydantic models
+✓ PASS - OAuth2 with PKCE for social login
+
+**RESULT**: All principles satisfied. Proceed to Phase 0.
+```
+
+### Complexity Tracking
+
+Only filled if constitution violations exist:
+
+```markdown
+## Complexity Tracking
+
+| Violation | Why Needed | Simpler Alternative Rejected Because |
+|-----------|------------|-------------------------------------|
+| Redis cache layer | Sub-200ms login requirement | Direct PostgreSQL queries average 350ms under load |
+| Separate OAuth service | Security isolation | Combining auth code with OAuth increases attack surface |
+```
+
+## Generated Artifacts
+
+### research.md
+
+Documents technology decisions:
+
+<CodeGroup>
+```markdown Password Hashing Decision
+## Decision: Password Hashing Algorithm
+
+**Chosen**: Bcrypt with cost factor 12
+
+**Rationale**:
+- Industry standard for password hashing
+- Adaptive cost factor grows with hardware improvements
+- Built-in salt generation
+- Well-supported in Python ecosystem (bcrypt library)
+
+**Alternatives Considered**:
+- **Argon2**: More modern, winner of Password Hashing Competition 2015
+  - Rejected: Less ecosystem maturity, minimal security advantage for our use case
+- **PBKDF2**: Older standard, simpler implementation
+  - Rejected: More vulnerable to GPU cracking than bcrypt
+- **Scrypt**: Memory-hard function, resistant to hardware attacks
+  - Rejected: Overkill for web app, adds memory overhead
+
+**Implementation Notes**:
+- Use `bcrypt.hashpw()` with `bcrypt.gensalt(rounds=12)`
+- Store hash in database `password_hash` column (60 chars)
+- Verify with `bcrypt.checkpw()`
+```
+
+```markdown Session Storage Decision
+## Decision: Session Storage Strategy
+
+**Chosen**: Redis cache with PostgreSQL fallback
+
+**Rationale**:
+- Redis provides sub-10ms session lookups (meets <200ms login target)
+- PostgreSQL stores authoritative session data
+- Cache miss rate < 1% with proper TTL management
+
+**Alternatives Considered**:
+- **PostgreSQL only**: Simpler but slower (350ms average under load)
+- **JWT stateless**: No server storage but can't revoke tokens
+- **Redis only**: Fast but data loss risk on cache eviction
+
+**Implementation Notes**:
+- Write to both Redis and PostgreSQL on session create
+- Read from Redis (cache hit) or PostgreSQL (cache miss)
+- Expire Redis keys at session TTL (24 hours)
+- Cleanup PostgreSQL expired sessions daily via cron job
+```
+</CodeGroup>
+
+### data-model.md
+
+Defines all entities:
+
+```markdown
+# Data Model: User Authentication
+
+## User Entity
+
+**Purpose**: Represents an authenticated user account
+
+**Fields**:
+- `id` (UUID, primary key): Unique user identifier
+- `email` (string, unique, indexed): User's email address
+- `password_hash` (string, 60 chars): Bcrypt hashed password
+- `created_at` (timestamp): Account creation time
+- `last_login_at` (timestamp, nullable): Most recent successful login
+- `failed_login_count` (integer, default 0): Failed attempts since last success
+- `locked_until` (timestamp, nullable): Account lock expiration (null if not locked)
+
+**Validation Rules**:
+- Email must be valid format (RFC 5322)
+- Password (before hashing) must be ≥12 chars with mixed case, numbers, symbols
+- Account locks after 5 failed attempts for 15 minutes
+
+**Relationships**:
+- One-to-many: `sessions` (active login sessions)
+- One-to-many: `oauth_connections` (linked OAuth providers)
+- One-to-many: `password_resets` (reset requests)
+
+---
+
+## Session Entity
+
+**Purpose**: Represents an active login session
+
+**Fields**:
+- `id` (UUID, primary key): Unique session identifier
+- `user_id` (UUID, foreign key): Reference to User
+- `token` (string, unique, indexed): Secure session token (32 bytes hex)
+- `created_at` (timestamp): Session creation time
+- `expires_at` (timestamp, indexed): Session expiration (24 hours from creation)
+- `ip_address` (string): Client IP for security auditing
+- `user_agent` (string): Client user agent
+
+**Validation Rules**:
+- Token must be cryptographically secure random (secrets.token_hex(32))
+- Expires_at must be > created_at
+- Expired sessions are invalid but retained for audit log
+
+**State Transitions**:
+- Created: New login generates session
+- Active: Token valid and not expired
+- Expired: Past expires_at timestamp
+- Revoked: User logs out or changes password
+
+---
+
+[... additional entities: PasswordReset, OAuthConnection ...]
+```
+
+### contracts/
+
+API specifications for each interface:
+
+<CodeGroup>
+```markdown contracts/auth.md
+# Authentication API Contract
+
+## POST /api/v1/auth/login
+
+**Purpose**: Authenticate user with email and password
+
+**Request**:
+```json
+{
+  "email": "user@example.com",
+  "password": "SecurePassword123!"
+}
+```
+
+**Success Response** (200 OK):
+```json
+{
+  "token": "a1b2c3d4e5f6...",
+  "expires_at": "2024-03-16T14:30:00Z",
+  "user": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "email": "user@example.com"
+  }
+}
+```
+
+**Error Responses**:
+- **401 Unauthorized**: Invalid credentials
+  ```json
+  {
+    "error": "invalid_credentials",
+    "message": "Email or password is incorrect"
+  }
+  ```
+- **423 Locked**: Account locked due to failed attempts
+  ```json
+  {
+    "error": "account_locked",
+    "message": "Account locked until 2024-03-15T15:00:00Z",
+    "locked_until": "2024-03-15T15:00:00Z"
+  }
+  ```
+
+**Performance**: < 200ms p95
+
+**Security**:
+- Rate limit: 5 requests per minute per IP
+- HTTPS required
+- Constant-time password comparison (prevent timing attacks)
+
+---
+
+## POST /api/v1/auth/logout
+
+[... additional endpoints ...]
+```
+
+```markdown contracts/oauth.md
+# OAuth2 API Contract
+
+## GET /api/v1/oauth/{provider}/authorize
+
+**Purpose**: Initiate OAuth2 authorization flow
+
+**Path Parameters**:
+- `provider` (string): OAuth provider (`google` or `github`)
+
+**Query Parameters**:
+- `redirect_uri` (string, optional): Post-auth redirect URL (must be whitelisted)
+
+**Response** (302 Redirect):
+Redirects to provider authorization URL with:
+- `client_id`: Our application ID
+- `redirect_uri`: Our callback URL
+- `scope`: Requested permissions (email, profile)
+- `state`: CSRF protection token
+- `code_challenge`: PKCE challenge
+
+**Error Responses**:
+- **400 Bad Request**: Invalid provider
+- **400 Bad Request**: Unauthorized redirect_uri
+
+---
+
+[... additional OAuth endpoints ...]
+```
+</CodeGroup>
+
+### quickstart.md
+
+Development guide:
+
+```markdown
+# Quickstart: User Authentication
+
+## Development Setup
+
+### Prerequisites
+- Python 3.11+
+- PostgreSQL 15+
+- Redis 7+
+- Docker (optional, for local services)
+
+### Install Dependencies
+
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
+pip install -r requirements-dev.txt  # Testing tools
+```
+
+### Configure Environment
+
+```bash
+cp .env.example .env
+# Edit .env with your settings:
+# DATABASE_URL=postgresql://user:pass@localhost/auth_db
+# REDIS_URL=redis://localhost:6379/0
+# SECRET_KEY=<generate with: python -c "import secrets; print(secrets.token_hex(32))">
+```
+
+### Run Database Migrations
+
+```bash
+alembic upgrade head
+```
+
+### Start Services
+
+```bash
+# Terminal 1: PostgreSQL (if using Docker)
+docker run -p 5432:5432 -e POSTGRES_PASSWORD=secret postgres:15
+
+# Terminal 2: Redis (if using Docker)
+docker run -p 6379:6379 redis:7
+
+# Terminal 3: FastAPI server
+uvicorn src.main:app --reload --port 8000
+```
+
+## Running Tests
+
+```bash
+# All tests
+pytest
+
+# Contract tests only
+pytest tests/contract/
+
+# Integration tests only
+pytest tests/integration/
+
+# With coverage
+pytest --cov=src --cov-report=html
+```
+
+## Example Usage
+
+### Register and Login
+
+```bash
+# Create account (not in Phase 1, but shown for context)
+curl -X POST http://localhost:8000/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email": "test@example.com", "password": "SecurePass123!"}'
+
+# Login
+curl -X POST http://localhost:8000/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "test@example.com", "password": "SecurePass123!"}'
+
+# Response:
+# {"token": "abc123...", "expires_at": "2024-03-16T14:30:00Z", ...}
+```
+
+### Use Session Token
+
+```bash
+curl -X GET http://localhost:8000/api/v1/users/me \
+  -H "Authorization: Bearer abc123..."
+```
+
+[... additional examples ...]
+```
+
+## Real-World Example
+
+<CodeGroup>
+```bash Command
+/speckit.plan I am building with Python, FastAPI, and PostgreSQL. Need to support 10k users
+```
+
+```text Console Output
+✓ Setup complete
+  - Feature spec: specs/003-user-auth/spec.md
+  - Implementation plan: specs/003-user-auth/plan.md
+  - Feature branch: 003-user-auth
+
+✓ Loaded context
+  - Specification: User Authentication (3 user stories)
+  - Constitution: 3 principles defined
+
+✓ Filled Technical Context
+  - Language: Python 3.11 (from user input)
+  - Framework: FastAPI (from user input)
+  - Storage: PostgreSQL (from user input)
+  - Testing: pytest (inferred for Python)
+  - NEEDS CLARIFICATION: Caching strategy for session lookups
+  - NEEDS CLARIFICATION: Email delivery service for password resets
+
+✓ Constitution Check (Pre-Research)
+  - Principle 1 (Simplicity): PASS
+  - Principle 2 (Testing): PASS
+  - Principle 3 (Security): PASS
+
+✓ Phase 0: Research
+  Resolving 2 technical unknowns...
+  
+  - Researched: Caching strategy
+    Decision: Redis with PostgreSQL fallback
+    Rationale: Meets <200ms performance target
+  
+  - Researched: Email delivery
+    Decision: SendGrid API
+    Rationale: 99.9% delivery rate, generous free tier
+  
+  ✓ Generated: specs/003-user-auth/research.md (2 decisions documented)
+
+✓ Phase 1: Design
+  
+  ✓ Generated data-model.md (4 entities)
+    - User
+    - Session  
+    - PasswordReset
+    - OAuthConnection
+  
+  ✓ Generated contracts/ (2 API specs)
+    - contracts/auth.md (login, logout, password reset endpoints)
+    - contracts/oauth.md (OAuth2 flow endpoints)
+  
+  ✓ Generated quickstart.md
+    - Development setup
+    - Running tests
+    - Example API usage
+  
+  ✓ Updated agent context
+    - Detected: Claude Code assistant
+    - Updated: .claude/commands/specify-context.md
+    - Added: FastAPI, SQLAlchemy, Redis technologies
+
+✓ Constitution Check (Post-Design)
+  - Principle 1 (Simplicity): PASS (single service, ORM only)
+  - Principle 2 (Testing): PASS (contract + integration tests planned)
+  - Principle 3 (Security): PASS (bcrypt, HTTPS, OAuth2 PKCE)
+  - Complexity violations: 1 (Redis cache)
+    ✓ Justified in Complexity Tracking table
+
+✓ Planning complete!
+
+Branch: 003-user-auth
+Plan: specs/003-user-auth/plan.md
+
+Generated artifacts:
+  - research.md (2 technical decisions)
+  - data-model.md (4 entities)
+  - contracts/auth.md (authentication API)
+  - contracts/oauth.md (OAuth2 API)
+  - quickstart.md (development guide)
+  - Updated .claude/commands/specify-context.md
+
+Next step: /speckit.tasks
+```
+</CodeGroup>
+
+## Best Practices
+
+### Provide Tech Stack Hints
+
+<CodeGroup>
+```bash Good: Specific technologies
+/speckit.plan I am building with Go 1.21, Gin framework, and MongoDB
+```
+
+```bash Good: Constraints
+/speckit.plan Using TypeScript and React. Must deploy to AWS Lambda (serverless)
+```
+
+```bash Okay: Let AI infer
+/speckit.plan
+# AI will check existing code for patterns
+```
+</CodeGroup>
+
+### Justify Constitution Violations
+
+If your design requires complexity:
+- Add entry to Complexity Tracking table
+- Explain why it's needed
+- Document simpler alternative and why it's insufficient
+- Get buy-in before proceeding
+
+### Document Research Thoroughly
+
+Future developers (including you) will ask:
+- Why did we choose X over Y?
+- What were the tradeoffs?
+- Can we switch to Z now?
+
+Answer these questions in research.md.
+
+### Keep Contracts Implementation-Agnostic
+
+Define the **interface**, not the **implementation**:
+- API endpoints: request/response schemas, status codes
+- CLI commands: argument formats, output structure
+- Library interfaces: function signatures, return types
+- Events: schema and semantics
+
+Avoid: "Uses FastAPI routing" or "Calls UserRepository.find()"
+
+## Handoffs
+
+After planning:
+
+<CardGroup cols={2}>
+  <Card title="Create Tasks" icon="list-check" href="/commands/tasks">
+    Break the plan into actionable, dependency-ordered tasks
+  </Card>
+  
+  <Card title="Create Checklist" icon="clipboard-check" href="/commands/checklist">
+    Generate quality checklists for the plan (optional)
+  </Card>
+</CardGroup>
+
+## File Structure
+
+```text
+specs/003-user-auth/
+├── spec.md                    # Feature specification
+├── plan.md                    # Implementation plan (this command)
+├── research.md                # Technical decisions (Phase 0)
+├── data-model.md              # Entity definitions (Phase 1)
+├── quickstart.md              # Development guide (Phase 1)
+└── contracts/                 # API specifications (Phase 1)
+    ├── auth.md
+    └── oauth.md
+```
+
+## Next Steps
+
+<Card title="Tasks" icon="list-check" href="/commands/tasks">
+  Break down the plan into executable tasks
+</Card>

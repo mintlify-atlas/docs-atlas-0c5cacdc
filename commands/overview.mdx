@@ -1,0 +1,277 @@
+---
+title: Slash Commands Overview
+description: Understanding the Spec-Driven Development workflow with Spec Kit slash commands
+---
+
+Slash commands are AI-powered tools that guide you through the Spec-Driven Development (SDD) workflow. Each command represents a phase in the development process, from defining project principles to implementing features.
+
+## The SDD Workflow
+
+Spec Kit organizes development into a structured, multi-phase workflow:
+
+<Steps>
+  <Step title="Constitution">
+    Define your project's core principles and governance rules using `/speckit.constitution`
+  </Step>
+  
+  <Step title="Specify">
+    Create feature specifications from natural language descriptions using `/speckit.specify`
+  </Step>
+  
+  <Step title="Clarify (Optional)">
+    Resolve ambiguities and refine requirements using `/speckit.clarify`
+  </Step>
+  
+  <Step title="Plan">
+    Generate technical architecture and design decisions using `/speckit.plan`
+  </Step>
+  
+  <Step title="Tasks">
+    Break down the plan into actionable, dependency-ordered tasks using `/speckit.tasks`
+  </Step>
+  
+  <Step title="Analyze (Optional)">
+    Validate consistency across all artifacts using `/speckit.analyze`
+  </Step>
+  
+  <Step title="Checklist (Optional)">
+    Generate quality validation checklists using `/speckit.checklist`
+  </Step>
+  
+  <Step title="Implement">
+    Execute the task plan and build the feature using `/speckit.implement`
+  </Step>
+</Steps>
+
+## Core Principles
+
+### Separation of Concerns
+
+Each command has a specific responsibility:
+- **What** (Specification) comes before **How** (Planning)
+- **Why** (Requirements) drives **What** (Design)
+- **Design** (Architecture) comes before **Do** (Implementation)
+
+### Progressive Refinement
+
+The workflow builds knowledge incrementally:
+1. Start with high-level user needs
+2. Clarify ambiguities through targeted questions
+3. Research technical approaches
+4. Design concrete solutions
+5. Execute in phases
+
+### Quality Gates
+
+Each phase validates work before proceeding:
+- Constitution checks ensure alignment with project principles
+- Specification validation prevents ambiguous requirements
+- Plan validation resolves all technical unknowns
+- Task validation ensures complete coverage
+- Analysis detects inconsistencies across artifacts
+
+## Command Categories
+
+### Governance
+
+<Card title="/speckit.constitution" icon="scale-balanced" href="/commands/constitution">
+  Define and maintain project principles, constraints, and governance rules
+</Card>
+
+### Feature Development
+
+<CardGroup cols={2}>
+  <Card title="/speckit.specify" icon="file-lines" href="/commands/specify">
+    Create feature specifications from natural language
+  </Card>
+  
+  <Card title="/speckit.clarify" icon="comments" href="/commands/clarify">
+    Ask targeted questions to resolve specification ambiguities
+  </Card>
+  
+  <Card title="/speckit.plan" icon="sitemap" href="/commands/plan">
+    Generate technical architecture and design artifacts
+  </Card>
+  
+  <Card title="/speckit.tasks" icon="list-check" href="/commands/tasks">
+    Break plans into actionable, dependency-ordered tasks
+  </Card>
+</CardGroup>
+
+### Quality Assurance
+
+<CardGroup cols={2}>
+  <Card title="/speckit.analyze" icon="magnifying-glass" href="/commands/analyze">
+    Detect inconsistencies and gaps across artifacts
+  </Card>
+  
+  <Card title="/speckit.checklist" icon="clipboard-check" href="/commands/checklist">
+    Generate domain-specific quality validation checklists
+  </Card>
+</CardGroup>
+
+### Execution
+
+<Card title="/speckit.implement" icon="code" href="/commands/implement">
+  Execute the implementation plan by processing all tasks
+</Card>
+
+## Typical Workflows
+
+### New Feature - Full Workflow
+
+```bash
+# 1. Create specification
+/speckit.specify Add user authentication with OAuth2
+
+# 2. Clarify ambiguities (if needed)
+/speckit.clarify
+
+# 3. Generate technical plan
+/speckit.plan I am building with Python and FastAPI
+
+# 4. Create task breakdown
+/speckit.tasks
+
+# 5. Analyze for consistency (optional)
+/speckit.analyze
+
+# 6. Generate checklists (optional)
+/speckit.checklist Create a security checklist
+
+# 7. Execute implementation
+/speckit.implement
+```
+
+### Quick Feature - Skip Clarification
+
+```bash
+# For well-understood features, skip clarification
+/speckit.specify Add pagination to user list endpoint
+/speckit.plan
+/speckit.tasks
+/speckit.implement
+```
+
+### Constitution Update
+
+```bash
+# Update project principles
+/speckit.constitution Add principle: All APIs must be versioned
+```
+
+## Handoffs and Automation
+
+Commands can automatically hand off to the next phase:
+
+<Note>
+  After `/speckit.specify` completes, it suggests running `/speckit.clarify` or `/speckit.plan`.
+  
+  After `/speckit.plan` completes, it suggests running `/speckit.tasks`.
+  
+  After `/speckit.tasks` completes, it suggests running `/speckit.analyze` or `/speckit.implement`.
+</Note>
+
+## File Organization
+
+Commands generate and read files in a structured hierarchy:
+
+```text
+.specify/
+├── memory/
+│   └── constitution.md          # Project principles (constitution)
+└── templates/                   # Command templates
+
+specs/
+└── 001-feature-name/           # Feature branch number + name
+    ├── spec.md                 # Feature specification (specify)
+    ├── plan.md                 # Implementation plan (plan)
+    ├── research.md             # Technical research (plan)
+    ├── data-model.md           # Entity definitions (plan)
+    ├── quickstart.md           # Integration guide (plan)
+    ├── tasks.md                # Task breakdown (tasks)
+    ├── contracts/              # API contracts (plan)
+    │   └── *.md
+    └── checklists/             # Quality checklists (checklist)
+        └── *.md
+```
+
+## Key Concepts
+
+### Feature Branches
+
+Each feature gets a numbered branch:
+- Format: `###-feature-name` (e.g., `001-user-auth`)
+- Auto-incrementing across remote, local, and specs directories
+- Matches a corresponding `specs/###-feature-name/` directory
+
+### Templates
+
+All commands use templates from `.specify/templates/`:
+- Ensures consistent structure across features
+- Supports customization for project-specific needs
+- Validated during execution
+
+### Validation
+
+Multiple validation layers:
+- **Format validation**: Ensures required sections exist
+- **Content validation**: Checks for placeholders and ambiguities
+- **Cross-artifact validation**: Detects inconsistencies (via analyze)
+- **Constitution validation**: Enforces project principles
+
+### Progressive Disclosure
+
+Commands load only necessary context:
+- Reduces token usage
+- Focuses on relevant information
+- Supports large codebases
+
+## Best Practices
+
+<Warning>
+  **Always run commands in order**: Each phase depends on the previous phase's outputs. Skipping phases can lead to incomplete or inconsistent artifacts.
+</Warning>
+
+### Start Simple
+
+Begin with a minimal viable specification:
+- Focus on core user value
+- Add details through clarification
+- Let the AI infer reasonable defaults
+
+### Use Clarification Strategically
+
+Only clarify what matters:
+- Scope boundaries that impact architecture
+- Security/privacy decisions
+- User experience trade-offs
+- Skip implementation details
+
+### Validate Early and Often
+
+Run analysis before implementation:
+- Catch requirement gaps
+- Detect conflicting specifications
+- Verify constitution alignment
+- Ensure task coverage
+
+### Leverage Checklists
+
+Generate domain-specific checklists:
+- Security requirements validation
+- UX requirement quality
+- API contract completeness
+- Performance requirement clarity
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Constitution" icon="scale-balanced" href="/commands/constitution">
+    Learn how to define project principles
+  </Card>
+  
+  <Card title="Specify" icon="file-lines" href="/commands/specify">
+    Start creating feature specifications
+  </Card>
+</CardGroup>

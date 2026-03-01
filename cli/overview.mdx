@@ -1,0 +1,153 @@
+---
+title: CLI Overview
+description: Introduction to the Specify CLI tool for Spec-Driven Development
+---
+
+## What is Specify CLI?
+
+Specify CLI is the command-line interface for **GitHub Spec Kit** — a comprehensive toolkit for implementing Spec-Driven Development (SDD). The CLI bootstraps projects with the necessary directory structures, templates, and AI agent integrations to support the spec-driven workflow.
+
+## Purpose
+
+Specify CLI helps development teams:
+
+- **Initialize projects** with spec-driven development structure
+- **Integrate AI assistants** (Claude, Copilot, Gemini, Cursor, and more)
+- **Manage extensions** for custom workflows and integrations
+- **Verify tool availability** before starting development
+
+## Core Philosophy
+
+Spec-Driven Development emphasizes creating clear specifications before implementation. The Specify CLI sets up your project to follow this workflow:
+
+1. **Constitution** — Establish project principles and guidelines
+2. **Specify** — Create baseline feature specifications
+3. **Plan** — Generate technical implementation plans
+4. **Tasks** — Break down plans into actionable tasks
+5. **Implement** — Execute implementation systematically
+
+## Installation
+
+Install Specify CLI using `uv` (recommended) or `pip`:
+
+```bash
+# Using uv (recommended)
+uvx specify-cli
+
+# Or install globally with uv
+uv tool install specify-cli
+
+# Or using pip
+pip install specify-cli
+```
+
+## Quick Start
+
+Initialize a new project with an AI assistant:
+
+```bash
+# Create a new project with Claude
+specify init my-project --ai claude
+
+# Initialize in current directory with GitHub Copilot
+specify init --here --ai copilot
+
+# Interactive mode (choose AI assistant)
+specify init my-project
+```
+
+## Available Commands
+
+Specify CLI provides the following commands:
+
+### Core Commands
+
+- [`specify init`](/cli/init) — Initialize a new Specify project
+- [`specify check`](/cli/check) — Verify installed tools and dependencies
+- `specify version` — Display version and system information
+
+### Extension Management
+
+- `specify extension list` — List installed extensions
+- `specify extension add` — Install an extension
+- `specify extension remove` — Uninstall an extension
+- `specify extension search` — Search available extensions
+- `specify extension info` — Show extension details
+- `specify extension update` — Update extensions
+- `specify extension enable` — Enable a disabled extension
+- `specify extension disable` — Disable an extension
+
+For detailed information about all commands, see the [Commands Reference](/cli/commands).
+
+## Supported AI Assistants
+
+Specify CLI supports integration with multiple AI coding assistants:
+
+### CLI-Based Assistants
+
+- **Claude Code** (`.claude/commands/`) — Anthropic's Claude Code CLI
+- **Gemini CLI** (`.gemini/commands/`) — Google's Gemini CLI
+- **Cursor** (`.cursor/commands/`) — Cursor CLI
+- **Qwen Code** (`.qwen/commands/`) — Alibaba's Qwen Code CLI
+- **opencode** (`.opencode/command/`) — opencode CLI
+- **Amazon Q Developer CLI** (`.amazonq/prompts/`) — Amazon Q Developer
+- **Amp** (`.agents/commands/`) — Amp CLI
+- **SHAI** (`.shai/commands/`) — SHAI CLI
+- **Auggie CLI** (`.augment/commands/`) — Auggie CLI
+- **CodeBuddy CLI** (`.codebuddy/commands/`) — CodeBuddy CLI
+- **Qoder CLI** (`.qoder/commands/`) — Qoder CLI
+- **Codex CLI** (`.codex/prompts/`) — Codex CLI
+
+### IDE-Based Assistants
+
+- **GitHub Copilot** (`.github/agents/`) — Built into VS Code
+- **Windsurf** (`.windsurf/workflows/`) — Windsurf IDE
+- **Kilo Code** (`.kilocode/workflows/`) — Kilo Code IDE
+- **Roo Code** (`.roo/commands/`) — Roo Code IDE
+- **IBM Bob** (`.bob/commands/`) — IBM Bob IDE
+- **Antigravity** (`.agent/workflows/`) — Antigravity IDE
+
+### Generic Agent Support
+
+For unsupported agents, use the `generic` option with a custom commands directory:
+
+```bash
+specify init my-project --ai generic --ai-commands-dir .myagent/commands/
+```
+
+## Project Structure
+
+After initialization, your project will have:
+
+```
+my-project/
+├── .specify/                    # Spec Kit core directory
+│   ├── memory/                  # Persistent context and state
+│   │   └── constitution.md      # Project principles
+│   ├── scripts/                 # Automation scripts
+│   ├── templates/               # Spec templates
+│   └── extensions/              # Installed extensions
+├── .<agent>/                    # AI agent configuration
+│   └── commands/                # Agent command files
+└── .vscode/                     # VS Code settings (if applicable)
+    └── settings.json
+```
+
+## Getting Help
+
+View help for any command:
+
+```bash
+# General help
+specify --help
+
+# Command-specific help
+specify init --help
+specify extension --help
+```
+
+## Next Steps
+
+- Learn about the [`init` command](/cli/init) to bootstrap projects
+- Use the [`check` command](/cli/check) to verify your environment
+- Explore the [Commands Reference](/cli/commands) for all available options

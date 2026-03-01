@@ -1,80 +1,514 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quick Start
+description: Get from installation to your first working specification in minutes
 ---
 
-## Get started in three steps
+## Overview
 
-Get your documentation site running locally and make your first customization.
+This guide walks you through creating your first Spec-Driven Development project using Spec Kit. You'll go from installation to a complete specification, implementation plan, and working code.
 
-### Step 1: Set up your local environment
+<Info>
+**Time to complete**: 15-20 minutes
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+**What you'll build**: A photo album organizer application with drag-and-drop functionality
+</Info>
 
-### Step 2: Deploy your changes
+## Prerequisites
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+Before starting, ensure you have:
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+- Completed the [Installation](/installation) steps
+- An AI coding assistant installed (Claude Code, Copilot, etc.)
+- Basic familiarity with your terminal and Git
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+## The 6-Step Process
 
-### Step 3: Go live
+Spec-Driven Development follows a structured workflow:
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+<Steps>
+  <Step title="Initialize Project" icon="folder-plus">
+    Set up your project structure and AI assistant integration
+  </Step>
+  <Step title="Define Constitution" icon="scale-balanced">
+    Establish governing principles and development guidelines
+  </Step>
+  <Step title="Create Specification" icon="file-lines">
+    Describe what you want to build (the **what** and **why**)
+  </Step>
+  <Step title="Clarify Requirements" icon="question">
+    Resolve ambiguities through structured questioning
+  </Step>
+  <Step title="Generate Technical Plan" icon="map">
+    Convert requirements into technical architecture
+  </Step>
+  <Step title="Implement" icon="code">
+    Break down into tasks and execute implementation
+  </Step>
+</Steps>
 
-## Next steps
+## Step 1: Initialize Your Project
 
-Now that you have your docs running, explore these key features:
+Create a new project directory and initialize Spec Kit:
 
-<CardGroup cols={2}>
+<CodeGroup>
+```bash New Project
+# Create a new project with Claude Code
+specify init photo-organizer --ai claude
 
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
+# Navigate to the project
+cd photo-organizer
+```
 
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
+```bash Existing Directory
+# Initialize in current directory with GitHub Copilot
+specify init . --ai copilot
 
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
+# Or use the --here flag
+specify init --here --ai copilot
+```
 
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
+```bash With Options
+# Initialize with PowerShell scripts and skip git
+specify init photo-organizer --ai claude --script ps --no-git
+```
+</CodeGroup>
 
-</CardGroup>
+**What happens during initialization:**
+
+- Creates `.specify/` directory with templates and scripts
+- Sets up agent-specific command files (e.g., `.claude/commands/`)
+- Initializes Git repository (unless `--no-git` specified)
+- Configures both Bash and PowerShell script variants
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+**Context Awareness**: Spec Kit commands automatically detect the active feature based on your current Git branch (e.g., `001-photo-albums`). To work on different specifications, simply switch Git branches.
 </Note>
+
+## Step 2: Launch Your AI Assistant
+
+Open your AI coding assistant in the project directory:
+
+<CodeGroup>
+```bash Claude Code
+cd photo-organizer
+claude
+```
+
+```bash opencode
+cd photo-organizer
+opencode
+```
+
+```bash Visual Studio Code (Copilot)
+cd photo-organizer
+code .
+# Open the chat panel and start a new conversation
+```
+</CodeGroup>
+
+Verify that the Spec Kit slash commands are available:
+
+- `/speckit.constitution`
+- `/speckit.specify`
+- `/speckit.clarify`
+- `/speckit.plan`
+- `/speckit.tasks`
+- `/speckit.implement`
+
+<img src="https://raw.githubusercontent.com/github/spec-kit/main/media/bootstrap-claude-code.gif" alt="Bootstrapping Claude Code environment" className="rounded-lg border" />
+
+## Step 3: Establish Project Constitution
+
+Use the `/speckit.constitution` command to create your project's governing principles:
+
+```text
+/speckit.constitution Create principles focused on code quality, testing standards, 
+user experience consistency, and performance requirements. The application should 
+prioritize simplicity and use minimal dependencies. All features must be fully 
+tested. Performance should be optimized for handling thousands of photos.
+```
+
+**What this creates:**
+
+- `.specify/memory/constitution.md` with your foundational guidelines
+- Principles that the AI agent references during specification, planning, and implementation
+- A versioned document that guides all technical decisions
+
+<Accordion title="Example Constitution Output">
+```markdown
+# Project Constitution
+
+## Version
+- Version: 1.0.0
+- Ratified: 2026-03-01
+- Last Amended: 2026-03-01
+
+## Principles
+
+### 1. Simplicity First
+Prioritize simple, maintainable solutions over complex architectures. 
+Use minimal dependencies and avoid over-engineering.
+
+**Rationale**: Simple code is easier to understand, test, and maintain.
+
+### 2. Test-Driven Quality
+All features must have comprehensive test coverage before merging.
+Unit tests, integration tests, and end-to-end tests are mandatory.
+
+**Rationale**: Testing ensures reliability and catches regressions early.
+
+### 3. Performance Optimization
+The application must handle thousands of photos efficiently with 
+fast load times and smooth interactions.
+
+**Rationale**: User experience depends on responsive performance.
+
+### 4. User Experience Consistency
+UI patterns and interactions must be consistent throughout the application.
+Follow established design patterns and accessibility guidelines.
+
+**Rationale**: Consistent UX reduces cognitive load and improves usability.
+```
+</Accordion>
+
+## Step 4: Create Your Specification
+
+Use the `/speckit.specify` command to describe what you want to build. **Focus on the what and why, not the tech stack:**
+
+```text
+/speckit.specify Build an application that helps me organize my photos into 
+separate photo albums. Albums are grouped by date and can be reorganized by 
+dragging and dropping on the main page. Albums are never nested inside other 
+albums. Within each album, photos are previewed in a tile-like grid interface. 
+Each photo should show a thumbnail, capture date, and file size. Users can add 
+new albums, delete albums, and move photos between albums using drag and drop. 
+The application should feel responsive even with hundreds of albums and thousands 
+of photos.
+```
+
+**What happens:**
+
+1. AI analyzes your description and generates a concise feature name (e.g., `photo-album-organizer`)
+2. Checks for existing branches/specs and assigns the next feature number (e.g., `001`)
+3. Creates a new Git branch: `001-photo-album-organizer`
+4. Generates a specification file: `.specify/specs/001-photo-album-organizer/spec.md`
+5. Creates a quality checklist to validate specification completeness
+
+<Accordion title="Example Specification Sections">
+The generated specification includes:
+
+- **Feature Overview**: High-level description and objectives
+- **User Scenarios**: Concrete examples of how users interact with the feature
+- **Functional Requirements**: Detailed, testable requirements
+- **Success Criteria**: Measurable outcomes (technology-agnostic)
+- **Key Entities**: Data models and relationships
+- **Edge Cases**: Boundary conditions and error scenarios
+- **Assumptions**: Documented reasonable defaults
+- **Out of Scope**: Explicit boundaries of what won't be built
+</Accordion>
+
+<img src="https://raw.githubusercontent.com/github/spec-kit/main/media/specify_cli.gif" alt="Specify CLI creating a feature" className="rounded-lg border" />
+
+## Step 5: Clarify Requirements
+
+Use the `/speckit.clarify` command to resolve ambiguities through structured questioning:
+
+```text
+/speckit.clarify Focus on data storage, security, and performance requirements.
+```
+
+**The clarification workflow:**
+
+1. AI scans the specification for `[NEEDS CLARIFICATION]` markers
+2. Presents questions with multiple-choice options and implications
+3. You provide answers (e.g., "Q1: A, Q2: Custom - store metadata in SQLite, Q3: B")
+4. AI updates the specification with your answers
+5. Re-validates the specification checklist
+
+<Warning>
+Spec Kit limits clarification markers to a maximum of 3 critical questions. The AI makes informed guesses for everything else, prioritizing questions by impact: scope > security > user experience > technical details.
+</Warning>
+
+**Example clarification questions:**
+
+<Accordion title="View Sample Clarification">
+```markdown
+## Question 1: Photo Storage Location
+
+**Context**: "Images are not uploaded anywhere and metadata is stored locally"
+
+**What we need to know**: Where should the application store photo files and metadata?
+
+**Suggested Answers**:
+
+| Option | Answer | Implications |
+|--------|--------|-------------|
+| A | Photos stay in their original filesystem locations, only metadata is copied | Minimal storage overhead, risk if original files move |
+| B | Photos are copied into a managed directory structure | Requires more storage but guarantees availability |
+| C | Photos are imported with configurable behavior | Flexible but more complex UI |
+| Custom | Provide your own answer | Explain your preferred approach |
+
+**Your choice**: _[Wait for user response]_
+```
+</Accordion>
+
+## Step 6: Generate Technical Plan
+
+Use the `/speckit.plan` command to define your tech stack and architecture:
+
+```text
+/speckit.plan The application uses Vite with a minimal number of libraries. 
+Use vanilla HTML, CSS, and JavaScript as much as possible to keep it simple. 
+Images are not uploaded anywhere - they stay on the local filesystem. 
+Metadata about albums and photo organization is stored in a local SQLite 
+database. Use the File System Access API for photo selection. Implement 
+virtual scrolling for performance with large photo collections.
+```
+
+**What the AI generates:**
+
+<CardGroup cols={2}>
+  <Card title="Implementation Plan" icon="map">
+    `.specify/specs/001-photo-album-organizer/plan.md`
+    
+    Technical architecture, technology choices, and implementation phases
+  </Card>
+  <Card title="Data Model" icon="database">
+    `.specify/specs/001-photo-album-organizer/data-model.md`
+    
+    Entity definitions, relationships, and database schema
+  </Card>
+  <Card title="API Contracts" icon="code">
+    `.specify/specs/001-photo-album-organizer/contracts/`
+    
+    API specifications, endpoints, and interface definitions
+  </Card>
+  <Card title="Quick Start Guide" icon="rocket">
+    `.specify/specs/001-photo-album-organizer/quickstart.md`
+    
+    How to run, test, and validate the implementation
+  </Card>
+</CardGroup>
+
+**Validation step:**
+
+Ask your AI assistant to validate the plan against the constitution:
+
+```text
+Please audit the implementation plan to ensure it aligns with our constitution 
+principles. Check for: simplicity (minimal dependencies), test coverage plans, 
+performance optimizations for handling thousands of photos, and UX consistency.
+```
+
+## Step 7: Break Down Into Tasks
+
+Use the `/speckit.tasks` command to generate an actionable task list:
+
+```text
+/speckit.tasks
+```
+
+**The task breakdown includes:**
+
+- Tasks organized by user story/implementation phase
+- Dependency ordering (models → services → endpoints → UI)
+- Parallel execution markers `[P]` for independent tasks
+- File path specifications for each task
+- Test-driven development structure
+- Checkpoint validations after each phase
+
+<Accordion title="Example Task Structure">
+```markdown
+## Phase 1: Core Data Layer
+
+### Tasks
+
+1. **[P] Create SQLite database schema**
+   - File: `src/db/schema.sql`
+   - Create albums table (id, name, created_date, sort_order)
+   - Create photos table (id, album_id, filepath, thumbnail_path, capture_date, file_size)
+   - Create indexes for common queries
+
+2. **[P] Implement database access layer**
+   - File: `src/db/database.js`
+   - Initialize database connection
+   - Create CRUD operations for albums
+   - Create CRUD operations for photos
+   - Add transaction support
+
+3. **Write tests for database layer**
+   - File: `tests/db/database.test.js`
+   - Test album CRUD operations
+   - Test photo CRUD operations
+   - Test transaction rollback scenarios
+   - Test concurrent access handling
+
+**Checkpoint**: All database tests passing, can create/read/update/delete albums and photos
+```
+</Accordion>
+
+## Step 8: Validate with Analysis
+
+(Optional) Use `/speckit.analyze` to cross-check consistency:
+
+```text
+/speckit.analyze
+```
+
+**This validates:**
+
+- All spec requirements are addressed in the plan
+- All plan components map back to requirements
+- No orphaned tasks or missing coverage
+- Constitution compliance throughout
+
+## Step 9: Execute Implementation
+
+Use the `/speckit.implement` command to build your feature:
+
+```text
+/speckit.implement
+```
+
+**The implementation workflow:**
+
+<Steps>
+  <Step title="Prerequisite Check">
+    Validates that constitution, spec, plan, and tasks exist
+  </Step>
+  <Step title="Checklist Validation">
+    Reviews all quality checklists and warns if items are incomplete
+  </Step>
+  <Step title="Task Execution">
+    Executes tasks in dependency order, respecting parallel markers
+  </Step>
+  <Step title="Test-Driven Development">
+    Writes tests before implementation when specified in tasks
+  </Step>
+  <Step title="Progress Updates">
+    Provides real-time progress and handles errors gracefully
+  </Step>
+</Steps>
+
+<Warning>
+The AI agent will execute local CLI commands (like `npm install`, `vite build`, etc.). Make sure you have the required tools installed on your machine based on your tech stack choices.
+</Warning>
+
+## Step 10: Test and Iterate
+
+After implementation completes:
+
+1. **Run the application** following the quickstart guide:
+   ```bash
+   npm install
+   npm run dev
+   ```
+
+2. **Test key scenarios** from the specification:
+   - Create new albums
+   - Add photos to albums
+   - Drag and drop photos between albums
+   - Reorganize album order
+   - Test with hundreds of photos for performance
+
+3. **Resolve runtime errors** by copying browser console errors back to your AI assistant
+
+4. **Create a pull request** (if using GitHub):
+   ```text
+   Create a pull request from this branch to main with a detailed description 
+   of the photo album organizer feature.
+   ```
+
+## Key Principles
+
+<CardGroup cols={2}>
+  <Card title="Be Explicit" icon="bullseye">
+    Clearly articulate what you're building and why, with concrete examples
+  </Card>
+  <Card title="Separate Concerns" icon="layer-group">
+    Don't focus on tech stack during specification—keep it technology-agnostic
+  </Card>
+  <Card title="Iterate and Refine" icon="arrows-rotate">
+    Use `/speckit.clarify` to resolve ambiguities before planning
+  </Card>
+  <Card title="Trust the Process" icon="check-circle">
+    Let the AI handle implementation details after providing clear specifications
+  </Card>
+</CardGroup>
+
+## Common Pitfalls
+
+<Warning>
+**Avoid these common mistakes:**
+
+- **Mixing specification and implementation**: Keep tech stack out of `/speckit.specify`, save it for `/speckit.plan`
+- **Vague requirements**: Be specific about user interactions and acceptance criteria
+- **Skipping clarification**: Use `/speckit.clarify` to resolve ambiguities early
+- **Over-engineering**: Trust your constitution principles to guide simplicity
+- **Ignoring checklists**: Complete quality checklists before implementation
+</Warning>
+
+## Phased Implementation Strategy
+
+For complex projects, implement in phases to avoid overwhelming the AI agent's context:
+
+<Steps>
+  <Step title="Phase 1: Core Functionality">
+    Implement the essential features that prove the concept works
+  </Step>
+  <Step title="Validate Phase 1">
+    Test thoroughly, fix issues, and verify the foundation is solid
+  </Step>
+  <Step title="Phase 2: Enhanced Features">
+    Add secondary features and optimizations incrementally
+  </Step>
+  <Step title="Iterate">
+    Continue adding features in manageable chunks, validating each phase
+  </Step>
+</Steps>
+
+<Info>
+**Example phased approach for photo organizer:**
+
+- **Phase 1**: Basic album creation, photo import, simple grid view
+- **Phase 2**: Drag-and-drop for photos and albums
+- **Phase 3**: Virtual scrolling and performance optimizations
+- **Phase 4**: Search, filtering, and advanced organization features
+</Info>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Complete Methodology" icon="book-open" href="/concepts/spec-driven-development">
+    Deep dive into the full Spec-Driven Development process
+  </Card>
+  <Card title="CLI Reference" icon="terminal" href="/cli/overview">
+    Explore all available commands, flags, and options
+  </Card>
+  <Card title="Supported Agents" icon="robot" href="/agents/supported-agents">
+    Learn about all compatible AI coding assistants
+  </Card>
+  <Card title="Advanced Patterns" icon="lightbulb" href="/advanced/templates">
+    Explore advanced workflows and best practices
+  </Card>
+</CardGroup>
+
+## Example Projects
+
+Explore these example specifications and implementations:
+
+- **Taskify**: Team productivity platform with Kanban boards (See README examples)
+- **Photo Organizer**: Album management with drag-and-drop (This quickstart)
+- **Custom integrations**: Check the [examples directory](https://github.com/github/spec-kit/tree/main/examples) for more
+
+## Getting Help
+
+If you encounter issues:
+
+1. **Check the troubleshooting section** in the [Installation guide](/installation#troubleshooting)
+2. **Review command documentation** in the [CLI Reference](/cli-reference)
+3. **Open a GitHub issue** with details about your problem: [github.com/github/spec-kit/issues](https://github.com/github/spec-kit/issues)
+
+<Info>
+Remember: Spec-Driven Development is about **amplifying human creativity**, not replacing it. You provide the vision and critical thinking; the AI handles the mechanical translation to code.
+</Info>

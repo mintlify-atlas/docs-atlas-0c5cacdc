@@ -1,0 +1,204 @@
+---
+title: Contributing Guide
+description: Learn how to contribute to Spec Kit and help shape the future of Spec-Driven Development
+---
+
+We're thrilled that you'd like to contribute to Spec Kit! Contributions to this project are released to the public under the [MIT open source license](https://github.com/github/spec-kit/blob/main/LICENSE).
+
+<Info>
+This project is released with a [Contributor Code of Conduct](https://github.com/github/spec-kit/blob/main/CODE_OF_CONDUCT.md). By participating in this project you agree to abide by its terms.
+</Info>
+
+## Prerequisites
+
+Before you start contributing, make sure you have these tools installed:
+
+<CardGroup cols={2}>
+  <Card title="Python 3.11+" icon="python">
+    [Download Python](https://www.python.org/downloads/)
+  </Card>
+  <Card title="uv Package Manager" icon="box">
+    [Install uv](https://docs.astral.sh/uv/)
+  </Card>
+  <Card title="Git" icon="git">
+    [Download Git](https://git-scm.com/downloads)
+  </Card>
+  <Card title="AI Coding Agent" icon="robot">
+    [See supported agents](/introduction#supported-ai-agents)
+  </Card>
+</CardGroup>
+
+### Development Environment Setup
+
+If you're using **VSCode** or **GitHub Codespaces**, you can leverage Dev Containers for a pre-configured development environment:
+
+<Accordion title="Using Dev Containers">
+  The project includes a `.devcontainer/devcontainer.json` file with all required tools pre-installed.
+
+  **VSCode:**
+  1. Install [Docker](https://docker.com) on your machine
+  2. Install the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+  3. Checkout the repository
+  4. Open with VSCode
+  5. Open Command Palette and select "Dev Containers: Open Folder in Container..."
+
+  **GitHub Codespaces:**
+  Simply open the repository in Codespaces - it automatically uses the `.devcontainer/devcontainer.json` configuration.
+</Accordion>
+
+## Submitting a Pull Request
+
+<Warning>
+If your pull request introduces large changes that materially impact the CLI or repository (e.g., new templates, arguments, or major changes), ensure it was **discussed and agreed upon** by project maintainers first. PRs with large undiscussed changes will be closed.
+</Warning>
+
+### Step-by-Step Process
+
+1. **Fork and clone the repository**
+   ```bash
+   git clone https://github.com/YOUR-USERNAME/spec-kit.git
+   cd spec-kit
+   ```
+
+2. **Configure and install dependencies**
+   ```bash
+   uv sync
+   ```
+
+3. **Verify the CLI works**
+   ```bash
+   uv run specify --help
+   ```
+
+4. **Create a new branch**
+   ```bash
+   git checkout -b my-branch-name
+   ```
+
+5. **Make your changes**
+   - Add your feature or fix
+   - Write tests for new functionality
+   - Ensure everything still works
+
+6. **Test the CLI functionality**
+   Test with a sample project if your changes affect user-facing features
+
+7. **Push and submit**
+   ```bash
+   git push origin my-branch-name
+   ```
+   Then open a pull request on GitHub
+
+8. **Wait for review**
+   Maintainers will review and provide feedback
+
+## Increasing PR Acceptance Likelihood
+
+Follow these guidelines to improve your chances of getting merged:
+
+- **Follow coding conventions** - Match the existing code style
+- **Write tests** - Include tests for new functionality
+- **Update documentation** - Modify `README.md` or `spec-driven.md` for user-facing changes
+- **Keep changes focused** - Submit separate PRs for independent changes
+- **Write good commit messages** - Follow [best practices](http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html)
+- **Test with Spec-Driven workflow** - Ensure compatibility with the methodology
+
+## Development Workflow
+
+When working on Spec Kit, test your changes thoroughly:
+
+<Accordion title="Testing Checklist">
+  1. **Test CLI commands** - Use `/speckit.specify`, `/speckit.plan`, `/speckit.tasks` in your coding agent
+  2. **Verify templates** - Check that templates in `templates/` directory work correctly
+  3. **Test scripts** - Ensure scripts in `scripts/` directory function properly
+  4. **Update memory files** - Modify `memory/constitution.md` if major process changes occur
+</Accordion>
+
+### Testing Template and Command Changes Locally
+
+Running `uv run specify init` pulls released packages, which won't include your local changes. To test locally:
+
+1. **Create release packages**
+   ```bash
+   ./.github/workflows/scripts/create-release-packages.sh v1.0.0
+   ```
+
+2. **Copy the package to your test project**
+   ```bash
+   cp -r .genreleases/sdd-copilot-package-sh/. <path-to-test-project>/
+   ```
+
+3. **Open and test the agent**
+   Navigate to your test project and verify your implementation
+
+## AI-Assisted Contributions
+
+<Info>
+**IMPORTANT**: If you use **any kind of AI assistance** to contribute to Spec Kit, you **must disclose it** in the pull request or issue.
+</Info>
+
+We welcome and encourage AI tools for code generation, issue detection, and feature definition! However, disclosure is required to help maintainers understand the contribution context and apply appropriate review scrutiny.
+
+### Disclosure Requirements
+
+Disclose AI assistance in PRs/issues, including the extent of use:
+
+**Examples:**
+- "This PR was written primarily by GitHub Copilot."
+- "I consulted ChatGPT to understand the codebase but the solution was fully authored manually by myself."
+- "Used Cursor AI to generate initial code structure, then manually reviewed and modified."
+
+**Exception:** Trivial spacing or typo fixes limited to small code parts or short phrases don't need disclosure.
+
+### What We're Looking For
+
+AI-assisted contributions should include:
+
+- **Clear disclosure** - Be transparent about AI use and degree
+- **Human understanding and testing** - Personally test changes and understand what they do
+- **Clear rationale** - Explain why the change is needed and how it fits Spec Kit's goals
+- **Concrete evidence** - Include test cases, scenarios, or examples demonstrating improvement
+- **Your own analysis** - Share thoughts on end-to-end developer experience
+
+### What We'll Close
+
+We reserve the right to close contributions that appear to be:
+
+- Untested changes submitted without verification
+- Generic suggestions that don't address specific Spec Kit needs
+- Bulk submissions showing no human review or understanding
+
+### Guidelines for Success
+
+Demonstrate that you understand and validated your proposed changes. If maintainers can easily tell a contribution was generated entirely by AI without human input or testing, it needs more work.
+
+<Warning>
+Contributors who consistently submit low-effort AI-generated changes may be restricted from further contributions at maintainers' discretion.
+</Warning>
+
+## Adding New AI Agent Support
+
+Expanding AI agent support is a valuable contribution! See the [AGENTS.md](https://github.com/github/spec-kit/blob/main/AGENTS.md) file for a comprehensive guide on:
+
+- Understanding agent categories (CLI-based vs IDE-based)
+- Adding agents to `AGENT_CONFIG`
+- Updating release scripts and documentation
+- Command file formats (Markdown vs TOML)
+- Testing new agent integration
+
+Key steps include:
+
+1. Add agent to `AGENT_CONFIG` in `src/specify_cli/__init__.py`
+2. Update CLI help text and README documentation
+3. Modify release package scripts
+4. Update agent context scripts (bash and PowerShell)
+5. Add CLI tool checks if required
+6. Test thoroughly with real agent
+
+## Resources
+
+- [Spec-Driven Development Methodology](https://github.com/github/spec-kit/blob/main/spec-driven.md)
+- [How to Contribute to Open Source](https://opensource.guide/how-to-contribute/)
+- [Using Pull Requests](https://help.github.com/articles/about-pull-requests/)
+- [GitHub Help](https://help.github.com)
+- [AGENTS.md - Adding New Agent Support](https://github.com/github/spec-kit/blob/main/AGENTS.md)

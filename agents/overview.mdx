@@ -1,0 +1,230 @@
+---
+title: AI Agent Integration Overview
+description: Understanding how Spec Kit integrates with AI coding agents to enable spec-driven development
+---
+
+## What is Agent Integration?
+
+Spec Kit provides a unified framework for integrating with AI coding agents through standardized slash commands and workflows. This integration allows developers to use their preferred AI assistant while maintaining consistent spec-driven development practices across teams.
+
+## How It Works
+
+When you initialize a Spec Kit project with `specify init`, the CLI automatically:
+
+1. **Creates agent-specific directories** - Sets up the correct folder structure for your chosen AI agent (e.g., `.claude/commands/`, `.windsurf/workflows/`, `.github/agents/`)
+2. **Generates command files** - Installs slash commands like `/speckit.specify`, `/speckit.plan`, and `/speckit.implement` in the appropriate format for your agent
+3. **Configures script executables** - Sets up shell scripts (bash/PowerShell) that agents can invoke to automate repository operations
+4. **Establishes project structure** - Creates the `.specify/` directory with templates, memory, and scripts
+
+### Agent Categories
+
+Spec Kit supports two primary categories of AI agents:
+
+<CardGroup cols={2}>
+  <Card title="CLI-Based Agents" icon="terminal">
+    Require a command-line tool installation. Examples include Claude Code, Gemini CLI, Cursor, opencode, and Amazon Q Developer CLI. These agents typically execute commands through their CLI interface.
+  </Card>
+  
+  <Card title="IDE-Based Agents" icon="window">
+    Built into integrated development environments. Examples include GitHub Copilot (VS Code), Windsurf IDE, IBM Bob, and Kilo Code. These agents work within their native IDE environment.
+  </Card>
+</CardGroup>
+
+## Command File Formats
+
+Different agents use different file formats for their commands:
+
+<Tabs>
+  <Tab title="Markdown (.md)">
+    Used by Claude Code, Cursor, opencode, Windsurf, Codex, Amazon Q, Amp, SHAI, IBM Bob, and Roo Code.
+
+    Example structure:
+
+    - YAML frontmatter with `description` field
+    - Uses `$ARGUMENTS` for argument passing
+    - Script paths use `.specify/` prefix
+    - Stored in agent-specific directories (`.claude/commands/`, `.cursor/commands/`, etc.)
+
+    ```markdown
+    ---
+    description: "Create feature specifications from requirements"
+    ---
+
+    # Specify Command
+    
+    You are helping create a feature specification...
+    
+    Execute: bash .specify/scripts/create-new-feature.sh $ARGUMENTS
+    ```
+  </Tab>
+  
+  <Tab title="TOML (.toml)">
+    Used by Gemini CLI and Qwen Code.
+
+    Example structure:
+
+    - TOML format with `description` field
+    - Uses `{{args}}` for argument passing (double curly braces)
+    - Prompt content in multi-line string (`"""`)
+    - Stored in `.gemini/commands/` or `.qwen/commands/`
+
+    ```toml
+    description = "Create feature specifications from requirements"
+
+    prompt = """
+    # Specify Command
+    
+    You are helping create a feature specification...
+    
+    Execute: bash .specify/scripts/create-new-feature.sh {{args}}
+    """
+    ```
+  </Tab>
+  
+  <Tab title="GitHub Copilot (.agent.md)">
+    Used by GitHub Copilot with special mode syntax.
+
+    Example structure:
+
+    - Includes `mode` field in frontmatter for command invocation
+    - Uses `$ARGUMENTS` for argument passing
+    - Stored in `.github/agents/` directory
+    - Uses `.agent.md` file extension
+
+    ```markdown
+    ---
+    description: "Create feature specifications from requirements"
+    mode: speckit.specify
+    ---
+
+    # Specify Command
+    
+    You are helping create a feature specification...
+    
+    Execute: bash .specify/scripts/create-new-feature.sh $ARGUMENTS
+    ```
+  </Tab>
+</Tabs>
+
+## Directory Conventions
+
+Each agent follows specific directory conventions for organizing command files:
+
+| Agent Type | Directory Pattern | Example |
+|------------|------------------|----------|
+| Standard commands | `.<agent>/commands/` | `.claude/commands/`, `.cursor/commands/` |
+| Workflows | `.<agent>/workflows/` | `.windsurf/workflows/`, `.kilocode/workflows/` |
+| Prompts | `.<agent>/prompts/` | `.codex/prompts/`, `.amazonq/prompts/` |
+| GitHub Copilot | `.github/agents/` | `.github/agents/` |
+| Generic | User-specified | Via `--ai-commands-dir` flag |
+
+## The Spec-Driven Development Workflow
+
+Regardless of which agent you use, all agents follow the same core workflow:
+
+```mermaid
+graph TD
+    A[/speckit.constitution] --> B[/speckit.specify]
+    B --> C[/speckit.clarify]
+    C --> D[/speckit.plan]
+    D --> E[/speckit.tasks]
+    E --> F[/speckit.analyze]
+    F --> G[/speckit.implement]
+    
+    style A fill:#e1f5ff
+    style B fill:#e1f5ff
+    style C fill:#fff4e1
+    style D fill:#e1f5ff
+    style E fill:#e1f5ff
+    style F fill:#fff4e1
+    style G fill:#e1f5ff
+```
+
+<Steps>
+  <Step title="Constitution">
+    Establish project principles and development guidelines using `/speckit.constitution`
+  </Step>
+  
+  <Step title="Specify">
+    Define requirements and user stories using `/speckit.specify`
+  </Step>
+  
+  <Step title="Clarify (Optional)">
+    Resolve ambiguities through structured questioning using `/speckit.clarify`
+  </Step>
+  
+  <Step title="Plan">
+    Create technical implementation plans with your tech stack using `/speckit.plan`
+  </Step>
+  
+  <Step title="Tasks">
+    Generate actionable task breakdowns using `/speckit.tasks`
+  </Step>
+  
+  <Step title="Analyze (Optional)">
+    Validate cross-artifact consistency using `/speckit.analyze`
+  </Step>
+  
+  <Step title="Implement">
+    Execute all tasks to build the feature using `/speckit.implement`
+  </Step>
+</Steps>
+
+## Agent Skills (agentskills.io)
+
+Spec Kit supports the [agentskills.io](https://agentskills.io) specification for installing reusable agent skills. When you initialize a project with the `--ai-skills` flag:
+
+```bash
+specify init my-project --ai claude --ai-skills
+```
+
+The CLI automatically:
+
+- Creates an agent-specific `skills/` directory (e.g., `.claude/skills/`, `.gemini/skills/`)
+- Converts each Spec Kit command into a standalone skill with a `SKILL.md` file
+- Adds enhanced descriptions and metadata following the agentskills.io spec
+- Enables skill discovery and reuse across projects
+
+**Benefits:**
+- Portable skills that work across compatible agents
+- Better discoverability through structured metadata
+- Version control and sharing of agent capabilities
+- Compatibility declarations for project requirements
+
+## Choosing the Right Agent
+
+Consider these factors when selecting an AI agent:
+
+<AccordionGroup>
+  <Accordion title="Development Environment">
+    - **VS Code users**: GitHub Copilot, Cursor, or Roo Code
+    - **Standalone CLI**: Claude Code, Gemini CLI, opencode, or Amazon Q
+    - **Specialized IDEs**: Windsurf, IBM Bob, or Kilo Code
+  </Accordion>
+  
+  <Accordion title="Team Consistency">
+    Choose an agent that your entire team can access and use consistently. This ensures everyone follows the same spec-driven workflow.
+  </Accordion>
+  
+  <Accordion title="Platform Support">
+    - **Cross-platform**: Most CLI agents work on Linux, macOS, and Windows
+    - **Script preference**: Choose `sh` for Unix-like systems or `ps` for PowerShell environments
+  </Accordion>
+  
+  <Accordion title="Feature Requirements">
+    - **Custom agents**: Use `--ai generic --ai-commands-dir <path>` for unsupported agents
+    - **Extended capabilities**: Some agents offer additional features beyond slash commands
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Supported Agents" icon="robot" href="/agents/supported-agents">
+    View the complete list of 15+ supported AI agents with installation links and compatibility notes
+  </Card>
+  
+  <Card title="Configuration Guide" icon="gear" href="/agents/configuration">
+    Learn how to configure projects for different agents and customize the integration
+  </Card>
+</CardGroup>

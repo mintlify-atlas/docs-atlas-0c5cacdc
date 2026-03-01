@@ -1,0 +1,573 @@
+---
+title: /speckit.analyze
+description: Detect inconsistencies and gaps across specification artifacts
+---
+
+The `/speckit.analyze` command performs a non-destructive, read-only consistency and quality analysis across your spec.md, plan.md, and tasks.md files after task generation.
+
+## Purpose
+
+Identify issues before implementation:
+- Detect inconsistencies between artifacts
+- Find duplicate or conflicting requirements
+- Identify ambiguities and underspecified areas
+- Verify constitution alignment
+- Check requirement-to-task coverage
+- Spot terminology drift across documents
+
+<Warning>
+  This command is **strictly read-only**. It produces a report but never modifies files. You must explicitly approve and run follow-up commands to fix any issues.
+</Warning>
+
+## Usage
+
+```bash
+# Analyze current feature artifacts
+/speckit.analyze
+
+# Analyze with specific focus
+/speckit.analyze Focus on security and performance requirements
+
+# Analyze before implementation
+/speckit.analyze Validate everything is ready for /speckit.implement
+```
+
+## How It Works
+
+<Steps>
+  <Step title="Initialize Analysis Context">
+    Runs prerequisite check and derives absolute paths:
+    - `SPEC`: Feature spec.md file
+    - `PLAN`: Implementation plan.md file
+    - `TASKS`: Task breakdown tasks.md file
+    - Aborts if any required file missing
+  </Step>
+  
+  <Step title="Load Artifacts (Progressive Disclosure)">
+    Loads minimal necessary context from each artifact:
+    
+    **From spec.md**:
+    - Overview/Context
+    - Functional Requirements
+    - Non-Functional Requirements
+    - User Stories
+    - Edge Cases
+    
+    **From plan.md**:
+    - Architecture/stack choices
+    - Data Model references
+    - Phases
+    - Technical constraints
+    
+    **From tasks.md**:
+    - Task IDs and descriptions
+    - Phase grouping
+    - Parallel markers `[P]`
+    - Referenced file paths
+    
+    **From constitution**:
+    - Loads `.specify/memory/constitution.md` for principle validation
+  </Step>
+  
+  <Step title="Build Semantic Models">
+    Creates internal representations:
+    - **Requirements inventory**: Each requirement with stable key
+    - **User story inventory**: Discrete user actions with acceptance criteria
+    - **Task coverage mapping**: Maps tasks to requirements/stories
+    - **Constitution rule set**: Principle names and MUST/SHOULD statements
+  </Step>
+  
+  <Step title="Detection Passes">
+    Runs multiple analysis passes:
+    - Duplication detection
+    - Ambiguity detection
+    - Underspecification check
+    - Constitution alignment
+    - Coverage gaps
+    - Inconsistency detection
+    
+    Limits findings to 50 total (high-signal only)
+  </Step>
+  
+  <Step title="Severity Assignment">
+    Prioritizes findings:
+    - **CRITICAL**: Constitution violations, missing coverage blocking baseline functionality
+    - **HIGH**: Conflicting requirements, ambiguous security/performance, untestable criteria
+    - **MEDIUM**: Terminology drift, missing non-functional coverage, underspecified edge cases
+    - **LOW**: Style/wording improvements, minor redundancy
+  </Step>
+  
+  <Step title="Produce Report">
+    Generates markdown analysis report with:
+    - Findings table (ID, category, severity, location, summary, recommendation)
+    - Coverage summary (requirements with/without tasks)
+    - Constitution alignment issues
+    - Unmapped tasks
+    - Metrics (total requirements, coverage %, issue counts)
+  </Step>
+  
+  <Step title="Provide Next Actions">
+    Recommends:
+    - If CRITICAL: resolve before `/speckit.implement`
+    - If LOW/MEDIUM only: may proceed but lists improvements
+    - Explicit command suggestions for fixes
+  </Step>
+  
+  <Step title="Offer Remediation">
+    Asks: "Would you like me to suggest concrete remediation edits for the top N issues?"
+    
+    Does NOT apply automatically - user must approve
+  </Step>
+</Steps>
+
+## Detection Categories
+
+### Duplication Detection
+
+Finds near-duplicate requirements:
+
+```markdown
+| ID | Category | Severity | Location | Summary | Recommendation |
+|----|----------|----------|----------|---------|----------------|
+| D1 | Duplication | HIGH | spec.md:L45, spec.md:L78 | Two similar password requirements with different wording | Merge into single requirement: "Passwords MUST be ≥12 chars with mixed case, numbers, symbols" |
+```
+
+### Ambiguity Detection
+
+Flags vague or unquantified requirements:
+
+```markdown
+| ID | Category | Severity | Location | Summary | Recommendation |
+|----|----------|----------|----------|---------|----------------|
+| A1 | Ambiguity | HIGH | spec.md:L92 | "Fast login" lacks measurable criteria | Replace with "Login completes in < 200ms (p95)" |
+| A2 | Ambiguity | HIGH | spec.md:L103 | "Secure password storage" lacks implementation constraint | Add "MUST use bcrypt or Argon2 with appropriate cost factor" |
+| A3 | Ambiguity | MEDIUM | plan.md:L56 | Unresolved placeholder: "NEEDS CLARIFICATION" | Run /speckit.clarify or replace with concrete decision |
+```
+
+### Underspecification
+
+Identifies incomplete requirements:
+
+```markdown
+| ID | Category | Severity | Location | Summary | Recommendation |
+|----|----------|----------|----------|---------|----------------|
+| U1 | Underspecification | HIGH | spec.md:FR-008 | "System MUST handle errors" lacks specific error types | Define which errors: network failures, validation errors, auth failures, etc. |
+| U2 | Underspecification | MEDIUM | spec.md:US2 | Password reset story missing acceptance criteria for expired tokens | Add scenario: "Given expired reset token, When user clicks link, Then show error and offer new request" |
+```
+
+### Constitution Alignment
+
+Validates against project principles:
+
+```markdown
+| ID | Category | Severity | Location | Summary | Recommendation |
+|----|----------|----------|----------|---------|----------------|
+| C1 | Constitution | CRITICAL | plan.md:L112 | Violates Principle 2: No tests planned for authentication flows | Add contract and integration tests to tasks.md for all auth endpoints |
+| C2 | Constitution | CRITICAL | plan.md:L89 | Violates Principle 1: Introduces repository pattern without justification | Remove repository layer or add justification to Complexity Tracking table |
+```
+
+### Coverage Gaps
+
+Finds requirements without implementation tasks:
+
+```markdown
+| ID | Category | Severity | Location | Summary | Recommendation |
+|----|----------|----------|----------|---------|----------------|
+| G1 | Coverage | HIGH | spec.md:FR-015 | "GDPR data export" requirement has no corresponding tasks | Add task to tasks.md: "Implement data export endpoint" |
+| G2 | Coverage | MEDIUM | spec.md:NFR-003 | Performance requirement (< 200ms login) not reflected in tasks | Add task: "Add performance benchmarking for auth endpoints" |
+```
+
+### Inconsistency
+
+Detects conflicts and terminology drift:
+
+```markdown
+| ID | Category | Severity | Location | Summary | Recommendation |
+|----|----------|----------|----------|---------|----------------|
+| I1 | Inconsistency | HIGH | spec.md vs plan.md | Spec uses "session token", plan uses "auth token" for same concept | Standardize on "session token" across all documents |
+| I2 | Inconsistency | MEDIUM | plan.md:L67 vs tasks.md:T025 | Plan specifies Redis for caching, task references Memcached | Update task T025 to use Redis (or update plan if Memcached is correct) |
+```
+
+## Analysis Report Structure
+
+<CodeGroup>
+```markdown Findings Table
+## Specification Analysis Report
+
+**Feature**: User Authentication (003-user-auth)  
+**Analyzed**: 2024-03-15 14:30:00  
+**Artifacts**: spec.md, plan.md, tasks.md, constitution.md
+
+### Findings
+
+| ID | Category | Severity | Location(s) | Summary | Recommendation |
+|----|----------|----------|-------------|---------|----------------|
+| C1 | Constitution | CRITICAL | plan.md:L112 | No tests for auth | Add contract + integration tests |
+| A1 | Ambiguity | HIGH | spec.md:L92 | "Fast login" vague | Specify "< 200ms p95" |
+| G1 | Coverage | HIGH | spec.md:FR-015 | GDPR export no task | Add export endpoint task |
+| D1 | Duplication | HIGH | spec.md:L45, L78 | Duplicate password req | Merge into single requirement |
+| I1 | Inconsistency | MEDIUM | spec vs plan | Token terminology drift | Standardize on "session token" |
+| U1 | Underspecification | MEDIUM | spec.md:US2 | Missing expired token case | Add acceptance scenario |
+```
+
+```markdown Coverage Summary
+### Coverage Summary Table
+
+| Requirement Key | Has Task? | Task IDs | Notes |
+|-----------------|-----------|----------|-------|
+| user-can-login | Yes | T019 | ✓ |
+| user-can-logout | Yes | T020 | ✓ |
+| password-reset | Yes | T029, T030 | ✓ |
+| oauth-login | Yes | T038, T039 | ✓ |
+| gdpr-data-export | No | - | ⚠️ Missing implementation |
+| account-locking | Yes | T021 | ✓ |
+| performance-benchmark | No | - | ⚠️ Non-functional requirement not covered |
+```
+
+```markdown Constitution Issues
+### Constitution Alignment Issues
+
+**CRITICAL**: 2 violations must be addressed before implementation
+
+1. **Principle 2 (Test-Driven Quality)**: No tests planned for authentication flows
+   - **Location**: plan.md, tasks.md
+   - **Impact**: Cannot verify auth security without tests
+   - **Fix**: Add contract tests for login/logout/reset endpoints
+   - **Fix**: Add integration tests for complete user journeys
+
+2. **Principle 1 (Simplicity First)**: Repository pattern introduced without justification
+   - **Location**: plan.md:L89
+   - **Impact**: Adds complexity layer not in constitution
+   - **Fix**: Remove repository pattern, use ORM directly
+   - **Alternative**: Add to Complexity Tracking table with justification
+```
+
+```markdown Metrics
+### Metrics
+
+- **Total Requirements**: 24
+- **Total Tasks**: 49
+- **Coverage**: 91.7% (22/24 requirements have ≥1 task)
+- **Ambiguity Count**: 3
+- **Duplication Count**: 1
+- **Critical Issues**: 2 (constitution violations)
+- **High Issues**: 4
+- **Medium Issues**: 2
+- **Low Issues**: 0
+```
+</CodeGroup>
+
+## Next Actions
+
+Based on findings severity:
+
+<CodeGroup>
+```text Critical Issues Found
+### Next Actions
+
+⚠️ **CRITICAL ISSUES DETECTED**
+
+You have 2 CRITICAL issues that MUST be resolved before `/speckit.implement`:
+
+1. Constitution violation: Missing tests
+2. Constitution violation: Unjustified complexity
+
+**Recommended actions**:
+
+1. Fix constitution violations:
+   - Run `/speckit.tasks` with explicit test requirements
+   - OR update plan.md to remove repository pattern
+   - OR add justification to plan.md Complexity Tracking table
+
+2. Address high-priority issues:
+   - Run `/speckit.specify` to clarify ambiguous requirements
+   - Manually edit spec.md to add missing acceptance scenarios
+
+3. Re-run analysis:
+   - `/speckit.analyze` to verify fixes
+
+**DO NOT run `/speckit.implement` until all CRITICAL issues resolved.**
+```
+
+```text No Critical Issues
+### Next Actions
+
+✓ **NO CRITICAL ISSUES**
+
+You have 4 HIGH and 2 MEDIUM priority issues, but they don't block implementation.
+
+**You may proceed to `/speckit.implement`** if you accept these risks:
+
+- Ambiguous "fast login" may lead to performance issues (A1)
+- Missing GDPR export task will need follow-up work (G1)
+- Terminology inconsistency may confuse developers (I1)
+
+**OR address issues first**:
+
+1. Clarify ambiguous requirements:
+   - Manually edit spec.md:L92 to specify "< 200ms p95"
+
+2. Add missing tasks:
+   - Manually edit tasks.md to add GDPR export endpoint task
+
+3. Fix terminology:
+   - Find/replace "auth token" with "session token" in plan.md
+
+4. Re-run analysis to verify:
+   - `/speckit.analyze`
+
+**Suggested next step**: `/speckit.implement` (or fix issues first)
+```
+</CodeGroup>
+
+## Real-World Example
+
+<CodeGroup>
+```bash Command
+/speckit.analyze
+```
+
+```text Console Output
+✓ Loaded artifacts
+  - Spec: specs/003-user-auth/spec.md (24 requirements)
+  - Plan: specs/003-user-auth/plan.md (Python, FastAPI, PostgreSQL)
+  - Tasks: specs/003-user-auth/tasks.md (49 tasks)
+  - Constitution: .specify/memory/constitution.md (3 principles)
+
+✓ Built semantic models
+  - Requirements: 24 functional + non-functional
+  - User stories: 3 (P1, P2, P3)
+  - Tasks: 49 (18 parallelizable)
+  - Constitution rules: 8 MUST statements
+
+✓ Running detection passes...
+
+  Duplication detection: 1 finding
+  Ambiguity detection: 3 findings
+  Underspecification: 2 findings
+  Constitution alignment: 0 violations (✓)
+  Coverage gaps: 2 findings
+  Inconsistency: 1 finding
+
+✓ Total findings: 9 (within 50 limit)
+
+✓ Severity distribution:
+  - CRITICAL: 0
+  - HIGH: 4
+  - MEDIUM: 3
+  - LOW: 2
+
+=====================================
+Analysis Report
+=====================================
+
+[Full report as shown in examples above]
+
+=====================================
+Next Actions
+=====================================
+
+✓ No critical issues detected.
+
+You have 4 HIGH and 3 MEDIUM priority issues.
+
+Recommended: Address HIGH issues before implementation:
+  1. Clarify "fast login" ambiguity (specify < 200ms)
+  2. Add GDPR export task
+  3. Merge duplicate password requirements
+  4. Fix token terminology inconsistency
+
+Optional: Fix MEDIUM issues for better quality
+
+**You may proceed to `/speckit.implement` with caution, or fix issues first.**
+
+Would you like me to suggest concrete remediation edits for the top 5 issues? (yes/no)
+```
+</CodeGroup>
+
+## Remediation Suggestions
+
+If user requests remediation help:
+
+```text
+User: yes
+
+=====================================
+Remediation Suggestions
+=====================================
+
+### Issue A1: Ambiguous "fast login" requirement
+
+**File**: specs/003-user-auth/spec.md  
+**Line**: 92
+
+**Current**:
+```markdown
+- **SC-002**: Users experience fast login
+```
+
+**Suggested Change**:
+```markdown
+- **SC-002**: Users complete login in under 200ms (p95 latency)
+```
+
+**Action**: Manually edit spec.md or run:
+  `/speckit.specify` to regenerate with clarified requirement
+
+---
+
+### Issue G1: Missing GDPR export task
+
+**File**: specs/003-user-auth/tasks.md  
+**Location**: After T031 (User Story 2 phase)
+
+**Suggested Addition**:
+```markdown
+- [ ] T032 [US2] Implement GDPR data export endpoint in src/api/gdpr.py
+```
+
+**Action**: Manually edit tasks.md to add task, renumber subsequent tasks
+
+---
+
+[... suggestions for remaining issues ...]
+
+**IMPORTANT**: These are SUGGESTIONS only. Review carefully before applying.
+After making changes, run `/speckit.analyze` again to verify fixes.
+```
+
+## Coverage Analysis
+
+Detailed requirement-to-task mapping:
+
+```markdown
+### Requirements With Full Coverage (✓)
+
+- **user-can-login** (FR-001, FR-005): Tasks T019 (login endpoint), T017 (AuthService)
+- **password-reset** (FR-004): Tasks T029 (request endpoint), T030 (confirm endpoint), T027 (PasswordService)
+- **oauth-login** (FR-006): Tasks T038 (authorize), T039 (callback), T037 (OAuthService)
+
+### Requirements With Partial Coverage (⚠️)
+
+- **account-locking** (FR-003): Task T021 implements locking, but no task for unlock mechanism
+- **performance** (NFR-001): No benchmarking or performance test tasks
+
+### Requirements With No Coverage (✗)
+
+- **gdpr-data-export** (FR-015): No tasks for data export functionality
+- **session-cleanup** (NFR-004): No task for expired session cleanup cron job
+
+### Unmapped Tasks (no requirement)
+
+- T043: "Add comprehensive docstrings" - polish task, not tied to specific requirement (✓ acceptable)
+- T048: "Run quickstart.md validation" - verification task (✓ acceptable)
+```
+
+## Operating Principles
+
+### Context Efficiency
+
+<Note>
+  The command uses **progressive disclosure**: loads only minimal necessary context, builds internal models efficiently, and outputs high-signal findings only.
+</Note>
+
+### Token-Efficient Output
+
+Limits findings to 50 total:
+- Prioritizes by severity
+- Aggregates similar low-impact issues
+- Focuses on actionable insights
+
+### Deterministic Results
+
+Rerunning without changes produces:
+- Consistent finding IDs
+- Same issue counts
+- Identical recommendations
+
+### Non-Destructive
+
+<Warning>
+  **NEVER modifies files.** All changes require explicit user approval and manual execution.
+</Warning>
+
+## Best Practices
+
+### Run Before Implementation
+
+```bash
+# Recommended workflow
+/speckit.tasks      # Generate tasks
+/speckit.analyze    # Validate consistency
+# Fix any CRITICAL issues
+/speckit.analyze    # Re-validate
+/speckit.implement  # Execute if clean
+```
+
+### Fix Critical Issues First
+
+Don't proceed to implementation with:
+- Constitution violations
+- Missing coverage for baseline functionality
+- Conflicting requirements
+
+### Trust the Severity Levels
+
+- **CRITICAL**: Must fix
+- **HIGH**: Should fix (or consciously accept risk)
+- **MEDIUM**: Nice to fix (improves quality)
+- **LOW**: Optional (polish only)
+
+### Re-Analyze After Fixes
+
+Always validate your changes:
+
+```bash
+# Make fixes
+vim specs/003-user-auth/spec.md
+vim specs/003-user-auth/tasks.md
+
+# Re-analyze
+/speckit.analyze
+
+# Verify issues resolved
+```
+
+## Handoffs
+
+After analysis:
+
+<CardGroup cols={2}>
+  <Card title="Fix Issues" icon="wrench">
+    Manually edit spec.md, plan.md, or tasks.md to address findings
+  </Card>
+  
+  <Card title="Re-Analyze" icon="magnifying-glass" href="/commands/analyze">
+    Run analysis again to verify fixes
+  </Card>
+  
+  <Card title="Proceed to Implement" icon="code" href="/commands/implement">
+    If no CRITICAL issues, execute implementation
+  </Card>
+</CardGroup>
+
+## File Structure
+
+No files modified - purely read-only:
+
+```text
+specs/003-user-auth/
+├── spec.md                    # Read only
+├── plan.md                    # Read only
+└── tasks.md                   # Read only
+
+.specify/
+└── memory/
+    └── constitution.md        # Read only
+```
+
+## Next Steps
+
+<Card title="Implement" icon="code" href="/commands/implement">
+  If analysis is clean, execute the implementation plan
+</Card>

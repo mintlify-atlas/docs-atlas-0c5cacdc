@@ -1,0 +1,1015 @@
+---
+title: Brownfield Enhancement Tutorial
+description: Add real-time notifications to an existing task management system using Spec-Driven Development
+---
+
+This tutorial demonstrates how to use SDD to add features to an existing codebase. You'll integrate real-time notifications into a task management application while respecting existing architecture and patterns.
+
+<Info>
+  **Time to complete**: 45-60 minutes
+  
+  **What you'll build**: WebSocket-based real-time notifications for task updates
+  
+  **Prerequisites**: Completed greenfield tutorial, understand SDD workflow
+</Info>
+
+## The Scenario
+
+You have an existing task management application ("Taskify") with:
+- REST API for CRUD operations (Python/FastAPI)
+- PostgreSQL database
+- React frontend
+- User authentication with JWT
+
+**Current problem**: Users must manually refresh to see task updates from teammates. You need to add real-time notifications when:
+- A task is assigned to the user
+- A task status changes
+- A comment is added to a task
+
+**Key constraints:**
+- Must integrate with existing authentication system
+- Cannot break existing REST API endpoints
+- Should reuse existing React components where possible
+- Must scale to 1,000 concurrent connections
+
+## Why Brownfield Is Different
+
+Unlike greenfield development, brownfield enhancement requires:
+
+<CardGroup cols={2}>
+  <Card title="Architecture Analysis" icon="magnifying-glass">
+    Understanding existing patterns, conventions, and constraints
+  </Card>
+  
+  <Card title="Integration Planning" icon="puzzle-piece">
+    Ensuring new features fit seamlessly with current design
+  </Card>
+  
+  <Card title="Backward Compatibility" icon="shield-check">
+    Not breaking existing functionality or APIs
+  </Card>
+  
+  <Card title="Code Reuse" icon="recycle">
+    Leveraging existing components and services
+  </Card>
+</CardGroup>
+
+## Step 0: Analyze Existing Codebase
+
+Before starting the SDD workflow, understand the current system:
+
+```text
+# Ask your AI assistant to analyze the codebase
+Please analyze the existing Taskify codebase and document:
+1. Current architecture (backend/frontend structure)
+2. Authentication mechanism (how JWT is used)
+3. Database schema (relevant tables: users, tasks, comments)
+4. API patterns (RESTful conventions, error handling)
+5. Frontend state management (Redux, Context, etc.)
+6. Testing approach (frameworks, coverage)
+
+Create a document summarizing these findings in .specify/memory/codebase-context.md
+```
+
+**Example analysis output:**
+
+## Codebase Context Document
+
+```markdown
+# Taskify Codebase Context
+
+## Architecture Overview
+
+### Backend (Python/FastAPI)
+- **Structure**: `backend/src/` with models, services, api modules
+- **Database**: PostgreSQL 15 with SQLAlchemy ORM
+- **Authentication**: JWT tokens in `Authorization: Bearer <token>` header
+- **API Pattern**: RESTful with `/api/v1/` prefix
+- **Error Handling**: Pydantic models, HTTP exceptions
+
+### Frontend (React)
+- **Structure**: `frontend/src/` with components, hooks, services
+- **State**: React Context + useReducer (no Redux)
+- **API Client**: Axios with interceptors for auth
+- **Routing**: React Router v6
+
+## Key Entities
+
+### User
+- `id` (UUID), `email`, `name`, `role` (PM | Engineer)
+- Authentication via email/password
+
+### Task
+- `id` (UUID), `project_id`, `title`, `description`, `status`, `assigned_to`
+- Status: TODO | IN_PROGRESS | IN_REVIEW | DONE
+
+### Comment
+- `id` (UUID), `task_id`, `user_id`, `text`, `created_at`
+
+## Existing Patterns
+
+### Backend Service Pattern
+```python
+# backend/src/services/task_service.py
+class TaskService:
+    def __init__(self, db: Session):
+        self.db = db
+    
+    def get_task(self, task_id: UUID) -> Task:
+        # Implementation
+    
+    def update_task(self, task_id: UUID, updates: TaskUpdate) -> Task:
+        # Implementation
+```
+
+### Frontend Hook Pattern
+```tsx
+// frontend/src/hooks/useTasks.ts
+export function useTasks(projectId: string) {
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    fetchTasks(projectId).then(setTasks);
+  }, [projectId]);
+  
+  return { tasks, loading, refetch: () => fetchTasks(projectId) };
+}
+```
+
+## Integration Points
+
+For real-time notifications:
+- Backend: Can extend `backend/src/services/` with notification service
+- Frontend: Can create new hook `useNotifications()` following existing pattern
+- Auth: Must validate JWT on WebSocket connection upgrade
+- Database: May need new `notifications` table or event log
+```
+
+<Note>
+  This analysis becomes input for the specification and planning phases, ensuring new features align with existing patterns.
+</Note>
+
+## Step 1: Initialize Feature in Existing Project
+
+Navigate to your existing Taskify project:
+
+```bash
+cd taskify
+
+# Launch AI assistant (if not already running)
+claude  # or your preferred assistant
+```
+
+**Verify Spec Kit is configured:**
+
+If the project doesn't have `.specify/` yet:
+
+```bash
+# Initialize Spec Kit in existing project
+specify init . --ai claude --force
+
+# This creates .specify/ without overwriting existing code
+```
+
+<Warning>
+  Using `--force` in an existing project merges Spec Kit structure without deleting your code. Review changes carefully.
+</Warning>
+
+## Step 2: Review Existing Constitution (or Create One)
+
+Check if `.specify/memory/constitution.md` exists. If not, create one that reflects current architecture:
+
+```text
+/speckit.constitution Analyze the existing Taskify codebase and create 
+principles that reflect our current architecture and practices:
+1. FastAPI backend with SQLAlchemy ORM (no repository pattern)
+2. React frontend with Context API (no Redux)
+3. PostgreSQL database with foreign key constraints
+4. JWT authentication for all protected endpoints
+5. Test coverage using pytest (backend) and Jest (frontend)
+6. Real-time features should use WebSockets (not polling)
+7. Maintain backward compatibility with existing REST API
+```
+
+**Generated constitution includes:**
+
+## Brownfield Constitution Example
+
+```markdown
+# Taskify Constitution
+
+## Principles
+
+### Article I: Existing Architecture Preservation
+New features MUST integrate with existing patterns.
+
+**Rules:**
+- Follow existing service pattern (SQLAlchemy ORM, no repository)
+- Follow existing hook pattern (Context API, no Redux)
+- Extend existing database schema (no schema redesign)
+- Reuse existing authentication (JWT validation)
+
+**Rationale**: Consistency makes maintenance easier and onboarding faster.
+
+### Article II: Backward Compatibility
+New features MUST NOT break existing functionality.
+
+**Rules:**
+- REST API endpoints remain unchanged
+- Database migrations must be backward compatible
+- Frontend components can be extended, not rewritten
+- Existing tests must continue passing
+
+**Rationale**: Production system cannot tolerate breaking changes.
+
+### Article III: Real-Time Performance
+WebSocket connections MUST scale to 1,000 concurrent users.
+
+**Rules:**
+- Use WebSocket for real-time features (not polling)
+- Implement connection pooling and load balancing
+- Graceful degradation if WebSocket unavailable
+- Monitor connection count and memory usage
+
+**Rationale**: Real-time features are only valuable if they're reliable at scale.
+```
+
+## Step 3: Create Feature Specification
+
+Specify **what** real-time notifications should do:
+
+```text
+/speckit.specify Add real-time notifications to Taskify so users are 
+immediately notified when:
+1. A task is assigned to them
+2. A task they're watching has its status changed
+3. A comment is added to a task they're watching
+
+Users should see notifications in a dropdown in the navbar with:
+- Notification message (e.g., "John assigned you 'Fix login bug'")
+- Timestamp (relative time, e.g., "2 minutes ago")
+- Link to the relevant task
+- Unread indicator
+
+Users can:
+- Mark individual notifications as read
+- Mark all notifications as read
+- View notification history (last 30 days)
+
+Notifications should appear instantly without requiring page refresh. 
+If the user is offline or WebSocket disconnects, they should see 
+notifications when they reconnect.
+```
+
+**What happens:**
+
+<Steps>
+  <Step title="AI analyzes existing codebase">
+    Reads `.specify/memory/codebase-context.md` to understand current architecture
+  </Step>
+  
+  <Step title="Generates short name">
+    Analyzes description → `real-time-notifications`
+  </Step>
+  
+  <Step title="Checks existing features">
+    Finds existing specs (001-create-taskify, 002-user-auth) → Next is `003`
+  </Step>
+  
+  <Step title="Creates feature branch">
+    Branch: `003-real-time-notifications`
+  </Step>
+  
+  <Step title="Generates spec with integration notes">
+    Spec includes "Integration Considerations" section for brownfield
+  </Step>
+</Steps>
+
+**Generated spec includes integration section:**
+
+## Integration Considerations
+
+```markdown
+### Integration Details
+
+### Backend Integration Points
+
+**Existing:**
+- `backend/src/services/task_service.py` - Handles task updates
+- `backend/src/api/tasks.py` - REST endpoints for tasks
+- `backend/src/middleware/auth.py` - JWT validation
+
+**Required:**
+- New `backend/src/services/notification_service.py` - Notification logic
+- New `backend/src/api/websocket.py` - WebSocket endpoint
+- Extend `backend/src/services/task_service.py` - Emit events on task changes
+- New `backend/src/models/notification.py` - Notification model
+
+### Frontend Integration Points
+
+**Existing:**
+- `frontend/src/hooks/useTasks.ts` - Task data fetching
+- `frontend/src/contexts/AuthContext.tsx` - Auth state (JWT token)
+- `frontend/src/components/Navbar.tsx` - Top navigation bar
+
+**Required:**
+- New `frontend/src/hooks/useNotifications.ts` - WebSocket connection and state
+- New `frontend/src/components/NotificationDropdown.tsx` - UI component
+- Extend `frontend/src/components/Navbar.tsx` - Add notification icon
+
+### Database Changes
+
+**New Tables:**
+```sql
+CREATE TABLE notifications (
+    id UUID PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES users(id),
+    task_id UUID NOT NULL REFERENCES tasks(id),
+    type VARCHAR(50) NOT NULL, -- 'task_assigned' | 'status_changed' | 'comment_added'
+    message TEXT NOT NULL,
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX idx_notifications_user_id ON notifications(user_id);
+CREATE INDEX idx_notifications_created_at ON notifications(created_at);
+```
+
+**Backward Compatibility:**
+- No changes to existing `tasks` or `comments` tables
+- Migration is additive only (no ALTER TABLE on existing tables)
+```
+
+<Note>
+  The specification explicitly addresses integration with existing systems—this is unique to brownfield development.
+</Note>
+
+## Step 4: Clarify Integration Details
+
+Use `/speckit.clarify` to resolve ambiguities about integration:
+
+```text
+/speckit.clarify Focus on integration with existing authentication and 
+whether we need persistent notification storage or in-memory only.
+```
+
+**Example clarification:**
+
+## Clarification: WebSocket Authentication
+
+```markdown
+## Question 1: WebSocket Authentication
+
+**Context**: The spec mentions validating JWT on WebSocket connection, but doesn't specify how to pass the token.
+
+**What we need to know**: How should JWT tokens be passed to WebSocket connections?
+
+**Suggested Answers**:
+
+| Option | Answer | Implications |
+|--------|--------|-------------|
+| A | Pass JWT as query parameter (`ws://...?token=<jwt>`) | Simple but exposes token in URL, logs may capture it |
+| B | Pass JWT in first WebSocket message after connect | More secure, requires client to send auth message |
+| C | Use HTTP cookie with httpOnly flag | Most secure, requires cookie-based auth |
+| Custom | Provide your own answer | Explain your preferred approach |
+
+**Your choice**: B - Pass JWT in first message (aligns with stateless REST API pattern)
+```
+
+## Step 5: Generate Implementation Plan
+
+Define **how** to build the feature with existing tech stack:
+
+```text
+/speckit.plan Use the existing FastAPI backend and React frontend. 
+For real-time communication, use FastAPI's WebSocket support on the backend 
+and the native WebSocket API on the frontend. Store notifications in PostgreSQL 
+for persistence. Use SQLAlchemy events to trigger notifications when tasks 
+are updated. Reuse the existing JWT authentication by validating tokens in 
+the WebSocket connection upgrade. On the frontend, create a new useNotifications 
+hook following the existing useTasks pattern. Integrate the notification 
+dropdown into the existing Navbar component.
+```
+
+**Generated plan.md includes:**
+
+## Example Plan Structure
+
+```markdown
+# Implementation Plan: Real-Time Notifications
+
+## Summary
+
+Add WebSocket-based real-time notifications to Taskify, integrating with 
+existing FastAPI backend, React frontend, and PostgreSQL database.
+
+## Technical Context
+
+**Existing Stack:**
+- Backend: Python 3.11, FastAPI 0.104, SQLAlchemy 2.0
+- Frontend: React 18, TypeScript 5, Vite
+- Database: PostgreSQL 15
+- Auth: JWT tokens via `Authorization: Bearer` header
+
+**New Technologies:**
+- FastAPI WebSocket support (built-in)
+- Native WebSocket API (browser built-in)
+- SQLAlchemy event listeners (for triggering notifications)
+
+**Integration Strategy:**
+- Backend: Extend existing service pattern
+- Frontend: Follow existing hook pattern
+- Database: Additive migrations only
+- Auth: Reuse JWT validation logic
+
+## Constitution Check
+
+### Article I: Existing Architecture Preservation
+✓ PASS - Using FastAPI WebSocket (consistent with REST API)
+✓ PASS - Following existing service pattern
+✓ PASS - Following existing hook pattern
+✓ PASS - Extending Navbar component (not rewriting)
+
+### Article II: Backward Compatibility
+✓ PASS - No changes to REST API endpoints
+✓ PASS - Database migration is additive only
+✓ PASS - Existing tests remain unchanged
+✓ PASS - WebSocket is opt-in (REST API still works)
+
+### Article III: Real-Time Performance
+✓ PASS - WebSocket for real-time (not polling)
+✓ PASS - Connection pooling via uvicorn workers
+✓ PASS - Graceful degradation plan (fallback to polling)
+
+**RESULT**: All principles satisfied. Proceed to Phase 0.
+
+## Phase 0: Research
+
+### Decision: WebSocket Scaling Strategy
+
+**Chosen**: FastAPI WebSocket with Redis Pub/Sub for multi-worker coordination
+
+**Rationale**:
+- FastAPI has built-in WebSocket support
+- Uvicorn workers don't share memory → need Redis for cross-worker messaging
+- Redis Pub/Sub is lightweight (no persistence needed)
+- Allows horizontal scaling to multiple servers
+
+**Implementation:**
+```python
+# backend/src/services/notification_service.py
+import redis
+import asyncio
+from fastapi import WebSocket
+
+class NotificationService:
+    def __init__(self, redis_client: redis.Redis):
+        self.redis = redis_client
+        self.connections: dict[UUID, WebSocket] = {}
+    
+    async def broadcast(self, user_id: UUID, notification: dict):
+        # Publish to Redis channel (all workers receive)
+        await self.redis.publish(
+            f"user:{user_id}",
+            json.dumps(notification)
+        )
+    
+    async def listen(self, user_id: UUID, websocket: WebSocket):
+        # Subscribe to user-specific channel
+        pubsub = self.redis.pubsub()
+        await pubsub.subscribe(f"user:{user_id}")
+        
+        async for message in pubsub.listen():
+            await websocket.send_json(message["data"])
+```
+
+## Phase 1: Backend Implementation
+
+### 1.1 Database Schema
+
+**New Model:**
+```python
+# backend/src/models/notification.py
+from sqlalchemy import Column, String, Boolean, ForeignKey, DateTime
+from sqlalchemy.dialects.postgresql import UUID
+import uuid
+from datetime import datetime
+
+class Notification(Base):
+    __tablename__ = "notifications"
+    
+    id = Column(UUID, primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID, ForeignKey("users.id"), nullable=False, index=True)
+    task_id = Column(UUID, ForeignKey("tasks.id"), nullable=False)
+    type = Column(String(50), nullable=False)  # 'task_assigned' | 'status_changed' | 'comment_added'
+    message = Column(String, nullable=False)
+    is_read = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    
+    # Relationships (leverage existing models)
+    user = relationship("User", backref="notifications")
+    task = relationship("Task")
+```
+
+### 1.2 Notification Service
+
+**Integration with Existing Services:**
+```python
+# backend/src/services/task_service.py
+from sqlalchemy import event
+from .notification_service import NotificationService
+
+class TaskService:
+    def __init__(self, db: Session, notification_service: NotificationService):
+        self.db = db
+        self.notification_service = notification_service
+    
+    def update_task(self, task_id: UUID, updates: TaskUpdate) -> Task:
+        task = self.db.query(Task).filter_by(id=task_id).first()
+        
+        # Track changes for notifications
+        status_changed = updates.status and updates.status != task.status
+        assigned_changed = updates.assigned_to and updates.assigned_to != task.assigned_to
+        
+        # Apply updates (existing logic)
+        for key, value in updates.dict(exclude_unset=True).items():
+            setattr(task, key, value)
+        
+        self.db.commit()
+        
+        # Trigger notifications (NEW)
+        if assigned_changed:
+            self.notification_service.create_notification(
+                user_id=task.assigned_to,
+                task_id=task.id,
+                type="task_assigned",
+                message=f"{current_user.name} assigned you '{task.title}'"
+            )
+        
+        if status_changed:
+            # Notify task watchers (users who commented or were previously assigned)
+            watchers = self._get_task_watchers(task.id)
+            for watcher_id in watchers:
+                self.notification_service.create_notification(
+                    user_id=watcher_id,
+                    task_id=task.id,
+                    type="status_changed",
+                    message=f"'{task.title}' moved to {task.status}"
+                )
+        
+        return task
+```
+
+[... additional implementation details in Phase 1, 2, 3 ...]
+```
+</Accordion>
+
+**Key difference from greenfield:**
+- Plan explicitly shows integration points with existing code
+- Preserves existing patterns (no refactoring)
+- Additive changes only (no destructive modifications)
+
+## Step 6: Validate Against Existing Tests
+
+Before implementing, ensure existing tests will continue passing:
+
+```text
+Run the existing test suite to establish a baseline:
+1. Backend tests: pytest backend/tests/
+2. Frontend tests: npm test
+
+Document the current pass rate in the plan so we can verify backward 
+compatibility after implementation.
+```
+
+**Example baseline:**
+
+```text
+✓ Baseline Test Results:
+  - Backend: 127 tests passing
+  - Frontend: 89 tests passing
+  - E2E: 15 tests passing
+  - Total: 231 tests passing
+
+Goal: All 231 tests must continue passing after implementation.
+```
+
+## Step 7: Break Down Into Tasks
+
+Generate tasks with explicit integration steps:
+
+```text
+/speckit.tasks
+```
+
+**Generated tasks emphasize integration:**
+
+## Example Task Breakdown
+
+```markdown
+# Task Breakdown: Real-Time Notifications
+
+## Phase 0: Pre-Implementation
+
+### Tasks
+
+1. **Create database migration**
+   - File: `backend/alembic/versions/003_add_notifications_table.py`
+   - Create `notifications` table (additive only)
+   - Add indexes for user_id and created_at
+   - Test migration up and down
+   - **Integration**: Ensure existing tables unchanged
+
+2. **Run baseline tests**
+   - Verify all 231 existing tests pass before changes
+   - Document pass rate in plan.md
+
+**Checkpoint**: Migration works, baseline tests pass
+
+---
+
+## Phase 1: Backend - Notification Service
+
+### Tasks
+
+1. **[P] Create Notification model**
+   - File: `backend/src/models/notification.py`
+   - Define Notification SQLAlchemy model
+   - Add relationships to User and Task
+   - **Integration**: Import in `backend/src/models/__init__.py`
+
+2. **[P] Create NotificationService**
+   - File: `backend/src/services/notification_service.py`
+   - Implement create_notification()
+   - Implement get_user_notifications()
+   - Implement mark_as_read()
+   - **Integration**: Follow existing service pattern from TaskService
+
+3. **[P] Set up Redis for Pub/Sub**
+   - File: `backend/src/redis_client.py`
+   - Initialize Redis connection
+   - Create pub/sub helper functions
+   - **Integration**: Add to dependency injection in main.py
+
+4. **Write notification service tests**
+   - File: `backend/tests/services/test_notification_service.py`
+   - Test notification creation
+   - Test retrieval and filtering
+   - Test mark as read
+   - **Integration**: Use existing test fixtures for users and tasks
+
+**Checkpoint**: Notification service works, tests pass (baseline + new)
+
+---
+
+## Phase 2: Backend - Integrate with Existing Services
+
+### Tasks
+
+1. **Extend TaskService to emit notifications**
+   - File: `backend/src/services/task_service.py` (MODIFY)
+   - Inject NotificationService into __init__
+   - Detect task assignment changes in update_task()
+   - Detect status changes in update_task()
+   - Call notification_service.create_notification()
+   - **Integration**: Preserve existing update_task() behavior
+
+2. **Extend CommentService to emit notifications**
+   - File: `backend/src/services/comment_service.py` (MODIFY)
+   - Detect new comments in create_comment()
+   - Call notification_service.create_notification() for watchers
+   - **Integration**: Preserve existing create_comment() behavior
+
+3. **Update existing service tests**
+   - File: `backend/tests/services/test_task_service.py` (MODIFY)
+   - Mock NotificationService
+   - Verify notifications triggered on task changes
+   - **Integration**: Ensure all existing tests still pass
+
+4. **Run regression tests**
+   - Execute full backend test suite
+   - Verify baseline tests (127) still pass
+   - Verify new tests pass
+
+**Checkpoint**: Task/comment updates trigger notifications, no regressions
+
+---
+
+## Phase 3: Backend - WebSocket Endpoint
+
+### Tasks
+
+1. **Create WebSocket endpoint**
+   - File: `backend/src/api/websocket.py`
+   - Define `/ws/notifications` endpoint
+   - Validate JWT in first message (reuse auth middleware)
+   - Subscribe to user-specific Redis channel
+   - Send notifications over WebSocket
+   - **Integration**: Use existing JWT validation logic
+
+2. **Add WebSocket tests**
+   - File: `backend/tests/api/test_websocket.py`
+   - Test WebSocket connection with valid JWT
+   - Test WebSocket rejection with invalid JWT
+   - Test notification delivery over WebSocket
+   - **Integration**: Use existing auth fixtures
+
+**Checkpoint**: WebSocket endpoint works, delivers notifications
+
+---
+
+## Phase 4: Frontend - WebSocket Hook
+
+### Tasks
+
+1. **Create useNotifications hook**
+   - File: `frontend/src/hooks/useNotifications.ts`
+   - Connect to WebSocket endpoint
+   - Send JWT in first message (from AuthContext)
+   - Handle incoming notifications
+   - Manage notification state (unread count)
+   - **Integration**: Follow pattern from useTasks.ts hook
+
+2. **Write hook tests**
+   - File: `frontend/src/hooks/useNotifications.test.ts`
+   - Test WebSocket connection
+   - Test notification state updates
+   - Test disconnect/reconnect
+   - **Integration**: Use existing test utilities
+
+**Checkpoint**: useNotifications hook connects and receives notifications
+
+---
+
+## Phase 5: Frontend - UI Integration
+
+### Tasks
+
+1. **Create NotificationDropdown component**
+   - File: `frontend/src/components/NotificationDropdown.tsx`
+   - Display notification list
+   - Mark as read functionality
+   - Link to relevant tasks
+   - **Integration**: Use existing UI components (Button, List, etc.)
+
+2. **Extend Navbar component**
+   - File: `frontend/src/components/Navbar.tsx` (MODIFY)
+   - Add notification icon with unread badge
+   - Integrate NotificationDropdown
+   - **Integration**: Preserve existing Navbar structure
+
+3. **Write component tests**
+   - File: `frontend/src/components/NotificationDropdown.test.tsx`
+   - Test notification rendering
+   - Test mark as read
+   - Test navigation to tasks
+   - **Integration**: Use existing testing-library setup
+
+4. **Run frontend regression tests**
+   - Execute npm test
+   - Verify baseline tests (89) still pass
+   - Verify new tests pass
+
+**Checkpoint**: Notifications appear in UI, existing components work
+
+---
+
+## Phase 6: End-to-End Testing
+
+### Tasks
+
+1. **Write E2E notification tests**
+   - File: `e2e/tests/notifications.spec.ts`
+   - Test: Assign task → notification appears
+   - Test: Change status → notification appears
+   - Test: Add comment → notification appears
+   - Test: Mark as read → badge updates
+   - **Integration**: Use existing E2E setup (Playwright/Cypress)
+
+2. **Run full test suite**
+   - Backend: 127 baseline + new tests
+   - Frontend: 89 baseline + new tests
+   - E2E: 15 baseline + new tests
+   - Verify no regressions
+
+**Checkpoint**: All tests pass, feature is production-ready
+```
+
+<Note>
+  Tasks explicitly mark files as **MODIFY** vs. **NEW**, making integration points clear.
+</Note>
+
+## Step 8: Execute Implementation
+
+Implement with extra focus on backward compatibility:
+
+```text
+/speckit.implement
+
+IMPORTANT: After each phase, run the baseline test suite to verify no 
+regressions. If any existing tests fail, fix them before proceeding.
+```
+
+**The AI will:**
+
+<Steps>
+  <Step title="Run baseline tests first">
+    Establishes pre-implementation pass rate
+  </Step>
+  
+  <Step title="Implement each phase">
+    Creates new files and modifies existing ones carefully
+  </Step>
+  
+  <Step title="Run tests after each phase">
+    Verifies both new functionality AND backward compatibility
+  </Step>
+  
+  <Step title="Fix regressions immediately">
+    If baseline tests fail, AI iterates to fix before proceeding
+  </Step>
+</Steps>
+
+**Example output:**
+
+```text
+✓ Phase 0: Pre-Implementation
+  ✓ Created database migration
+  ✓ Ran baseline tests (231/231 passing) ✓
+  ✓ Checkpoint: Ready for implementation
+
+✓ Phase 1: Backend - Notification Service
+  ✓ Created Notification model
+  ✓ Created NotificationService
+  ✓ Set up Redis client
+  ✓ Wrote service tests (8 new tests)
+  ✓ Ran tests (239/239 passing) ✓
+  ✓ Checkpoint: Service working, no regressions
+
+✓ Phase 2: Backend - Integration
+  ✓ Extended TaskService (notifications on assign/status change)
+  ✓ Extended CommentService (notifications on new comments)
+  ✓ Updated service tests (6 modified tests)
+  ✓ Ran tests (245/245 passing) ✓
+  ⚠ Checkpoint: Fixed 2 tests that broke due to new dependencies
+
+✓ Phase 3: Backend - WebSocket
+  ✓ Created WebSocket endpoint
+  ✓ Wrote WebSocket tests (5 new tests)
+  ✓ Ran tests (250/250 passing) ✓
+  ✓ Checkpoint: WebSocket delivering notifications
+
+✓ Phase 4: Frontend - Hook
+  ✓ Created useNotifications hook
+  ✓ Wrote hook tests (7 new tests)
+  ✓ Ran tests (257/257 passing) ✓
+  ✓ Checkpoint: Hook connecting and receiving
+
+✓ Phase 5: Frontend - UI
+  ✓ Created NotificationDropdown component
+  ✓ Extended Navbar component
+  ✓ Wrote component tests (6 new tests)
+  ✓ Ran tests (263/263 passing) ✓
+  ✓ Checkpoint: Notifications appearing in UI
+
+✓ Phase 6: E2E Testing
+  ✓ Wrote E2E notification tests (4 new tests)
+  ✓ Ran full test suite (267/267 passing) ✓
+  ✓ Checkpoint: Feature complete, no regressions
+
+✓ Implementation complete!
+  - Baseline tests: 231 (all still passing)
+  - New tests: 36
+  - Total: 267 tests passing
+  - No regressions detected ✓
+```
+
+<Warning>
+  **Common brownfield issues:**
+  
+  - **Import cycles**: New services may create circular dependencies
+  - **Test fixtures**: Existing fixtures may need extending
+  - **Type conflicts**: TypeScript may complain about extended types
+  - **Database state**: Tests may share state if not properly isolated
+  
+  The AI will iterate to fix these issues.
+</Warning>
+
+## Step 9: Manual Integration Testing
+
+Test the feature in the actual application:
+
+<Steps>
+  <Step title="Start services">
+    ```bash
+    # Terminal 1: Backend
+    cd backend
+    uvicorn src.main:app --reload
+    
+    # Terminal 2: Redis
+    redis-server
+    
+    # Terminal 3: Frontend
+    cd frontend
+    npm run dev
+    ```
+  </Step>
+  
+  <Step title="Test notification triggers">
+    1. Log in as User A
+    2. Open browser console → Network → WS (verify WebSocket connected)
+    3. In another browser (User B), assign a task to User A
+    4. Verify notification appears in User A's dropdown
+  </Step>
+  
+  <Step title="Test existing features">
+    1. Create a task (existing functionality)
+    2. Update task status (existing functionality)
+    3. Add comments (existing functionality)
+    4. Verify all existing features still work
+  </Step>
+  
+  <Step title="Test edge cases">
+    1. Disconnect WebSocket (close network) → verify graceful reconnect
+    2. Clear notifications → verify they're marked as read
+    3. Open multiple tabs → verify notifications sync
+  </Step>
+</Steps>
+
+## Step 10: Create Pull Request
+
+Create a PR emphasizing integration and backward compatibility:
+
+```text
+Create a pull request from branch 003-real-time-notifications to main. 
+In the description, emphasize:
+1. What existing code was modified vs. what was added
+2. Backward compatibility verification (all baseline tests pass)
+3. Integration points with existing services
+4. Migration steps for deployment
+5. Screenshots of notifications in action
+```
+
+## What You've Learned
+
+<CardGroup cols={2}>
+  <Card title="Codebase Analysis" icon="magnifying-glass">
+    Understanding existing patterns before specification
+  </Card>
+  
+  <Card title="Integration-First Planning" icon="puzzle-piece">
+    Planning that respects existing architecture
+  </Card>
+  
+  <Card title="Backward Compatibility" icon="shield-check">
+    Validating existing tests throughout implementation
+  </Card>
+  
+  <Card title="Additive Changes" icon="plus">
+    Extending without refactoring or breaking changes
+  </Card>
+</CardGroup>
+
+## Brownfield vs. Greenfield
+
+| Aspect | Greenfield | Brownfield |
+|--------|-----------|------------|
+| **Constitution** | Create from scratch | Reflect existing patterns |
+| **Specification** | Pure user value | User value + integration points |
+| **Planning** | Choose optimal stack | Use existing stack |
+| **Tasks** | Build from zero | Extend existing code |
+| **Testing** | New test suite | Preserve baseline tests |
+| **Risk** | Technical feasibility | Breaking existing features |
+
+## Common Pitfalls
+
+<Warning>
+  **Avoid these mistakes:**
+  
+  1. **Refactoring existing code**: Resist the urge to "improve" old code—focus on integration
+  2. **Ignoring existing patterns**: Match current conventions even if not ideal
+  3. **Skipping baseline tests**: Always establish and maintain test baseline
+  4. **Over-engineering**: Don't add abstractions the existing codebase doesn't use
+  5. **Breaking backward compatibility**: Protect existing API contracts
+</Warning>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Parallel Implementations" icon="code-branch" href="/examples/parallel-implementations">
+    Explore the same feature with different tech stacks
+  </Card>
+  
+  <Card title="Advanced Templates" icon="file-code" href="/advanced/templates">
+    Customize templates for brownfield patterns
+  </Card>
+  
+  <Card title="Troubleshooting" icon="screwdriver-wrench" href="/advanced/troubleshooting">
+    Solutions to integration issues
+  </Card>
+  
+  <Card title="Examples Overview" icon="map" href="/examples/overview">
+    Return to examples overview
+  </Card>
+</CardGroup>

@@ -1,0 +1,573 @@
+---
+title: Extension System
+description: Extend Spec Kit with custom commands and functionality
+---
+
+The extension system allows you to add new functionality to Spec Kit without bloating the core framework. Extensions are modular packages that integrate seamlessly with your AI coding agent.
+
+## Overview
+
+Extensions enable you to:
+
+- **Integrate** with external tools (Jira, Linear, GitHub, etc.)
+- **Automate** repetitive tasks with hooks
+- **Customize** workflows for your team
+- **Share** solutions across projects
+
+<Tip>
+Extensions are loaded on-demand and only when their commands are used, so they won't slow down Spec Kit.
+</Tip>
+
+## Extension Catalogs
+
+Spec Kit uses a dual-catalog system to give organizations full control over available extensions:
+
+### Your Catalog (`catalog.json`)
+
+- **Purpose**: Default upstream catalog used by the Specify CLI
+- **Default State**: Empty by design - you or your organization populate it with trusted extensions
+- **Location**: `extensions/catalog.json` in the GitHub-hosted spec-kit repo
+- **Customization**: Copy entries from the community catalog or add your own extensions
+
+<CodeGroup>
+```bash Override catalog
+# Point to your organization's catalog
+export SPECKIT_CATALOG_URL="https://your-org.com/spec-kit/catalog.json"
+specify extension search  # Now uses your catalog
+```
+
+```bash Use default catalog
+# Uses upstream catalog from GitHub
+specify extension search
+```
+</CodeGroup>
+
+### Community Reference Catalog (`catalog.community.json`)
+
+- **Purpose**: Browse available community-contributed extensions
+- **Status**: Active - contains extensions submitted by the community
+- **Location**: `extensions/catalog.community.json`
+- **Usage**: Reference catalog for discovering extensions
+- **Submission**: Open to community contributions via Pull Request
+
+## Finding Extensions
+
+<Warning>
+By default, `specify extension search` uses your organization's catalog. If empty, you won't see results. See [Organization Catalog Customization](#organization-catalog-customization) to populate it.
+</Warning>
+
+<CodeGroup>
+```bash Browse all
+specify extension search
+```
+
+```bash Search by keyword
+specify extension search jira
+specify extension search issue
+```
+
+```bash Filter by tag
+specify extension search --tag issue-tracking
+specify extension search --tag atlassian
+```
+
+```bash Filter by author
+specify extension search --author "Stats Perform"
+```
+
+```bash Verified only
+specify extension search --verified
+```
+</CodeGroup>
+
+### Get Extension Details
+
+```bash
+specify extension info jira
+```
+
+Shows:
+- Description and requirements
+- Commands provided
+- Hooks available
+- Documentation links
+- Installation status
+
+## Installing Extensions
+
+### From Catalog
+
+```bash
+# Install by name
+specify extension add jira
+```
+
+This will:
+1. Download the extension from GitHub
+2. Validate the manifest
+3. Check compatibility with your spec-kit version
+4. Install to `.specify/extensions/jira/`
+5. Register commands with your AI agent
+6. Create config template
+
+### From URL
+
+```bash
+# Install from GitHub release
+specify extension add --from https://github.com/org/spec-kit-ext/archive/refs/tags/v1.0.0.zip
+```
+
+### From Local Directory
+
+```bash
+# For development/testing
+specify extension add --dev /path/to/extension
+```
+
+<Accordion title="Installation Output Example">
+```text
+✓ Extension installed successfully!
+
+Jira Integration (v1.0.0)
+  Create Jira Epics, Stories, and Issues from spec-kit artifacts
+
+Provided commands:
+  • speckit.jira.specstoissues - Create Jira hierarchy from spec and tasks
+  • speckit.jira.discover-fields - Discover Jira custom fields
+  • speckit.jira.sync-status - Sync task completion status to Jira
+
+⚠  Configuration may be required
+   Check: .specify/extensions/jira/
+```
+</Accordion>
+
+## Using Extensions
+
+### Extension Commands
+
+Extensions add commands to your AI agent:
+
+```text
+# In Claude Code, opencode, or other AI agent
+/speckit.jira.specstoissues
+
+# Or use short alias (if provided)
+/speckit.specstoissues
+```
+
+### Extension Configuration
+
+Most extensions require configuration:
+
+<CodeGroup>
+```bash Copy template
+# Find the config file
+ls .specify/extensions/jira/
+
+# Copy template to config
+cp .specify/extensions/jira/jira-config.template.yml \
+   .specify/extensions/jira/jira-config.yml
+```
+
+```bash Edit config
+# Edit configuration
+vim .specify/extensions/jira/jira-config.yml
+```
+</CodeGroup>
+
+<Accordion title="Configuration Layers">
+Configuration is merged in this order (highest priority last):
+
+1. **Extension defaults** (from `extension.yml`)
+2. **Project config** (`jira-config.yml`)
+3. **Local overrides** (`jira-config.local.yml` - gitignored)
+4. **Environment variables** (`SPECKIT_JIRA_*`)
+
+Example:
+
+```yaml Project config (.specify/extensions/jira/jira-config.yml)
+project:
+  key: "MSATS"
+
+defaults:
+  epic:
+    labels: ["spec-driven"]
+```
+
+```yaml Local override (.specify/extensions/jira/jira-config.local.yml)
+project:
+  key: "MYTEST"  # Override for local development
+```
+
+```bash Environment variable
+export SPECKIT_JIRA_PROJECT_KEY="DEVTEST"
+```
+
+Final resolved config uses `DEVTEST` from environment variable.
+</Accordion>
+
+### Extension Hooks
+
+Some extensions provide hooks that execute after core commands:
+
+```text
+# Run core command
+/speckit.tasks
+
+# Output includes:
+## Extension Hooks
+
+**Optional Hook**: jira
+Command: `/speckit.jira.specstoissues`
+Description: Automatically create Jira hierarchy after task generation
+
+Prompt: Create Jira issues from tasks?
+To execute: `/speckit.jira.specstoissues`
+```
+
+You can then choose to run the hook or skip it.
+
+## Managing Extensions
+
+### List Installed
+
+```bash
+specify extension list
+```
+
+<Accordion title="Example Output">
+```text
+Installed Extensions:
+
+  ✓ Jira Integration (v1.0.0)
+     Create Jira Epics, Stories, and Issues from spec-kit artifacts
+     Commands: 3 | Hooks: 1 | Status: Enabled
+```
+</Accordion>
+
+### Update Extensions
+
+<CodeGroup>
+```bash Check all
+specify extension update
+```
+
+```bash Update specific
+specify extension update jira
+```
+</CodeGroup>
+
+### Disable/Enable
+
+<CodeGroup>
+```bash Disable
+specify extension disable jira
+# Commands no longer available, hooks won't execute
+```
+
+```bash Enable
+specify extension enable jira
+```
+</CodeGroup>
+
+### Remove Extension
+
+<CodeGroup>
+```bash Remove with confirmation
+specify extension remove jira
+```
+
+```bash Keep config
+specify extension remove jira --keep-config
+```
+
+```bash Force removal
+specify extension remove jira --force
+```
+</CodeGroup>
+
+## Organization Catalog Customization
+
+Organizations customize their `catalog.json` to:
+
+- **Control available extensions** - Curate which extensions your team can install
+- **Host private extensions** - Internal tools that shouldn't be public
+- **Customize for compliance** - Meet security/audit requirements
+- **Support air-gapped environments** - Work without internet access
+
+### Setting Up a Custom Catalog
+
+<Accordion title="1. Create Your Catalog File">
+Create a `catalog.json` file with your extensions:
+
+```json
+{
+  "schema_version": "1.0",
+  "updated_at": "2026-02-03T00:00:00Z",
+  "catalog_url": "https://your-org.com/spec-kit/catalog.json",
+  "extensions": {
+    "jira": {
+      "name": "Jira Integration",
+      "id": "jira",
+      "description": "Create Jira issues from spec-kit artifacts",
+      "author": "Your Organization",
+      "version": "2.1.0",
+      "download_url": "https://github.com/your-org/spec-kit-jira/archive/refs/tags/v2.1.0.zip",
+      "repository": "https://github.com/your-org/spec-kit-jira",
+      "license": "MIT",
+      "requires": {
+        "speckit_version": ">=0.1.0"
+      },
+      "provides": {
+        "commands": 3,
+        "hooks": 1
+      },
+      "tags": ["jira", "atlassian", "issue-tracking"],
+      "verified": true
+    },
+    "internal-tool": {
+      "name": "Internal Tool Integration",
+      "id": "internal-tool",
+      "description": "Connect to internal company systems",
+      "author": "Your Organization",
+      "version": "1.0.0",
+      "download_url": "https://internal.your-org.com/extensions/internal-tool-1.0.0.zip",
+      "repository": "https://github.internal.your-org.com/spec-kit-internal",
+      "license": "Proprietary",
+      "tags": ["internal", "proprietary"],
+      "verified": true
+    }
+  }
+}
+```
+</Accordion>
+
+<Accordion title="2. Host the Catalog">
+Options for hosting:
+
+| Method | URL Example | Use Case |
+|--------|-------------|----------|
+| GitHub Pages | `https://your-org.github.io/spec-kit-catalog/catalog.json` | Public or org-visible |
+| Internal web server | `https://internal.company.com/spec-kit/catalog.json` | Corporate network |
+| S3/Cloud storage | `https://s3.amazonaws.com/your-bucket/catalog.json` | Cloud-hosted teams |
+| Local file server | `http://localhost:8000/catalog.json` | Development/testing |
+
+<Warning>
+URLs must use HTTPS (except `localhost` for testing).
+</Warning>
+</Accordion>
+
+<Accordion title="3. Configure Your Environment">
+**Option A: Environment variable (recommended for CI/CD)**
+
+```bash
+# In ~/.bashrc, ~/.zshrc, or CI pipeline
+export SPECKIT_CATALOG_URL="https://your-org.com/spec-kit/catalog.json"
+```
+
+**Option B: Per-project configuration**
+
+```bash
+SPECKIT_CATALOG_URL="https://your-org.com/spec-kit/catalog.json" specify extension search
+```
+</Accordion>
+
+<Accordion title="4. Verify Configuration">
+```bash
+# Search should now show your catalog's extensions
+specify extension search
+
+# Install from your catalog
+specify extension add jira
+```
+</Accordion>
+
+## Available Community Extensions
+
+The following extensions are available in `catalog.community.json`:
+
+| Extension | Purpose |
+|-----------|----------|
+| **V-Model Extension Pack** | Enforces V-Model paired generation of development specs and test specs with full traceability |
+| **Cleanup Extension** | Post-implementation quality gate that reviews changes, fixes small issues (scout rule), creates tasks for medium issues |
+
+<Tip>
+To use community extensions, copy their entries from `catalog.community.json` to your organization's `catalog.json`.
+</Tip>
+
+## Creating Extensions
+
+See the [Extension Development Guide](https://github.com/github/spec-kit/blob/main/extensions/EXTENSION-DEVELOPMENT-GUIDE.md) for detailed instructions on creating your own extensions.
+
+### Quick Start
+
+<CodeGroup>
+```yaml extension.yml
+schema_version: "1.0"
+
+extension:
+  id: "my-ext"
+  name: "My Extension"
+  version: "1.0.0"
+  description: "My custom extension"
+  author: "Your Name"
+  repository: "https://github.com/you/spec-kit-my-ext"
+  license: "MIT"
+
+requires:
+  speckit_version: ">=0.1.0"
+
+provides:
+  commands:
+    - name: "speckit.my-ext.hello"
+      file: "commands/hello.md"
+      description: "Say hello"
+```
+
+```markdown commands/hello.md
+---
+description: "Say hello command"
+---
+
+# Hello Command
+
+This command says hello!
+
+## User Input
+
+$ARGUMENTS
+
+## Steps
+
+1. Greet the user
+2. Show extension is working
+
+```bash
+echo "Hello from my extension!"
+echo "Arguments: $ARGUMENTS"
+```
+</CodeGroup>
+
+### Test Locally
+
+```bash
+cd /path/to/spec-kit-project
+specify extension add --dev /path/to/my-extension
+```
+
+## Best Practices
+
+### Version Control
+
+**Do commit:**
+- `.specify/extensions.yml` (project extension config)
+- `.specify/extensions/*/jira-config.yml` (project config)
+
+**Don't commit:**
+- `.specify/extensions/.cache/` (catalog cache)
+- `.specify/extensions/.backup/` (config backups)
+- `.specify/extensions/*/*.local.yml` (local overrides)
+- `.specify/extensions/.registry` (installation state)
+
+<CodeGroup>
+```gitignore .gitignore
+.specify/extensions/.cache/
+.specify/extensions/.backup/
+.specify/extensions/*/*.local.yml
+.specify/extensions/.registry
+```
+</CodeGroup>
+
+### Team Workflows
+
+For teams:
+1. Agree on which extensions to use
+2. Commit extension configuration
+3. Document extension usage in README
+4. Keep extensions updated together
+
+### Environment-Specific Config
+
+Use environment variables for CI/CD:
+
+```yaml .github/workflows/deploy.yml
+env:
+  SPECKIT_JIRA_PROJECT_KEY: ${{ secrets.JIRA_PROJECT }}
+
+- name: Create Jira Issues
+  run: specify extension add jira && ...
+```
+
+### Security
+
+- **Never commit secrets**: Use environment variables
+- **Validate input**: Sanitize user arguments
+- **Document permissions**: What files/APIs are accessed
+- **Review extensions**: Always review extension code before installing
+
+## Troubleshooting
+
+<Accordion title="Extension Not Found">
+**Error**: `Extension 'jira' not found in catalog`
+
+**Solutions**:
+1. Check spelling: `specify extension search jira`
+2. Verify catalog URL is set correctly
+3. Check internet connection
+4. Extension may not be in your catalog yet
+</Accordion>
+
+<Accordion title="Configuration Not Found">
+**Error**: `Jira configuration not found`
+
+**Solutions**:
+1. Check if extension is installed: `specify extension list`
+2. Create config from template:
+   ```bash
+   cp .specify/extensions/jira/jira-config.template.yml \
+      .specify/extensions/jira/jira-config.yml
+   ```
+3. Reinstall extension: `specify extension remove jira && specify extension add jira`
+</Accordion>
+
+<Accordion title="Command Not Available">
+**Issue**: Extension command not appearing in AI agent
+
+**Solutions**:
+1. Check extension is enabled: `specify extension list`
+2. Restart AI agent (Claude Code, opencode, etc.)
+3. Check command file exists:
+   ```bash
+   ls .claude/commands/speckit.jira.*.md
+   ```
+4. Reinstall extension
+</Accordion>
+
+<Accordion title="Incompatible Version">
+**Error**: `Extension requires spec-kit >=0.2.0, but you have 0.1.0`
+
+**Solutions**:
+1. Upgrade spec-kit:
+   ```bash
+   uv tool upgrade specify-cli
+   ```
+2. Install older version of extension:
+   ```bash
+   specify extension add --from https://github.com/org/ext/archive/v1.0.0.zip
+   ```
+</Accordion>
+
+## Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|----------|
+| `SPECKIT_CATALOG_URL` | Override extension catalog URL | GitHub-hosted catalog |
+| `GH_TOKEN` / `GITHUB_TOKEN` | GitHub API token for downloads | None |
+| `SPECKIT_{EXTENSION}_*` | Extension-specific configuration | Extension defaults |
+
+## Related Resources
+
+- [Extension User Guide](https://github.com/github/spec-kit/blob/main/extensions/EXTENSION-USER-GUIDE.md)
+- [Extension Development Guide](https://github.com/github/spec-kit/blob/main/extensions/EXTENSION-DEVELOPMENT-GUIDE.md)
+- [Extension API Reference](https://github.com/github/spec-kit/blob/main/extensions/EXTENSION-API-REFERENCE.md)
+- [Extension Publishing Guide](https://github.com/github/spec-kit/blob/main/extensions/EXTENSION-PUBLISHING-GUIDE.md)

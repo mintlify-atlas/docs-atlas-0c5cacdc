@@ -1,0 +1,626 @@
+---
+title: Templates
+description: Understanding and customizing Spec Kit templates
+---
+
+Spec Kit uses templates to structure your specifications, plans, and task breakdowns. These templates guide you through the Spec-Driven Development workflow and ensure consistency across projects.
+
+## Template Overview
+
+Templates are stored in `.specify/templates/` and provide structured formats for:
+
+- **Specifications** - Feature requirements and user stories
+- **Implementation Plans** - Technical architecture and design
+- **Task Breakdowns** - Actionable implementation tasks
+- **Checklists** - Quality validation checklists
+- **Constitution** - Project principles and guidelines
+- **Agent Files** - AI agent context and instructions
+
+## Core Templates
+
+### Specification Template
+
+**File**: `spec-template.md`
+
+**Purpose**: Define what you want to build (requirements and user stories)
+
+<Accordion title="Structure">
+```markdown
+# Feature Specification: [FEATURE NAME]
+
+**Feature Branch**: `[###-feature-name]`
+**Created**: [DATE]
+**Status**: Draft
+**Input**: User description: "$ARGUMENTS"
+
+## User Scenarios & Testing
+
+### User Story 1 - [Brief Title] (Priority: P1)
+
+[Describe this user journey in plain language]
+
+**Why this priority**: [Explain the value and priority level]
+
+**Independent Test**: [How this can be tested independently]
+
+**Acceptance Scenarios**:
+
+1. **Given** [initial state], **When** [action], **Then** [expected outcome]
+2. **Given** [initial state], **When** [action], **Then** [expected outcome]
+
+---
+
+### User Story 2 - [Brief Title] (Priority: P2)
+
+[Continue for each user story...]
+
+## Requirements
+
+### Functional Requirements
+
+- **FR-001**: System MUST [specific capability]
+- **FR-002**: System MUST [specific capability]
+
+### Key Entities
+
+- **[Entity 1]**: [What it represents, key attributes]
+- **[Entity 2]**: [What it represents, relationships]
+
+## Success Criteria
+
+### Measurable Outcomes
+
+- **SC-001**: [Measurable metric]
+- **SC-002**: [Measurable metric]
+```
+</Accordion>
+
+<Tip>
+**Key Principles:**
+- User stories should be PRIORITIZED (P1, P2, P3) by importance
+- Each story must be INDEPENDENTLY TESTABLE
+- Focus on *what* and *why*, not implementation details
+- Mark unclear requirements with `[NEEDS CLARIFICATION: ...]`
+</Tip>
+
+### Plan Template
+
+**File**: `plan-template.md`
+
+**Purpose**: Create technical implementation plans with chosen tech stack
+
+<Accordion title="Structure">
+```markdown
+# Implementation Plan: [FEATURE]
+
+**Branch**: `[###-feature-name]` | **Date**: [DATE]
+
+## Summary
+
+[Extract from feature spec: primary requirement + technical approach]
+
+## Technical Context
+
+**Language/Version**: [e.g., Python 3.11, Swift 5.9]
+**Primary Dependencies**: [e.g., FastAPI, UIKit]
+**Storage**: [e.g., PostgreSQL, CoreData, files]
+**Testing**: [e.g., pytest, XCTest]
+**Target Platform**: [e.g., Linux server, iOS 15+]
+**Project Type**: [e.g., library/cli/web-service/mobile-app]
+**Performance Goals**: [domain-specific]
+**Constraints**: [domain-specific]
+**Scale/Scope**: [domain-specific]
+
+## Constitution Check
+
+*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+
+[Gates determined based on constitution file]
+
+## Project Structure
+
+### Documentation (this feature)
+
+```text
+specs/[###-feature]/
+├── plan.md              # This file
+├── research.md          # Phase 0 output
+├── data-model.md        # Phase 1 output
+├── quickstart.md        # Phase 1 output
+├── contracts/           # Phase 1 output
+└── tasks.md             # Phase 2 output (/speckit.tasks)
+```
+
+### Source Code (repository root)
+
+[Choose and document structure: single project, web app, mobile, etc.]
+
+## Complexity Tracking
+
+> Fill ONLY if Constitution Check has violations that must be justified
+
+| Violation | Why Needed | Simpler Alternative Rejected Because |
+|-----------|------------|--------------------------------------|
+```
+</Accordion>
+
+<Tip>
+**Key Principles:**
+- Replace ALL placeholders with concrete technical choices
+- Document structure decision and reference real directories
+- Fill complexity tracking ONLY for constitution violations
+- Mark unclear items with `[NEEDS CLARIFICATION: ...]`
+</Tip>
+
+### Tasks Template
+
+**File**: `tasks-template.md`
+
+**Purpose**: Break down implementation plan into actionable tasks
+
+<Accordion title="Structure">
+```markdown
+# Tasks: [FEATURE NAME]
+
+**Input**: Design documents from `/specs/[###-feature-name]/`
+**Prerequisites**: plan.md (required), spec.md (required)
+
+## Format: `[ID] [P?] [Story] Description`
+
+- **[P]**: Can run in parallel (different files, no dependencies)
+- **[Story]**: Which user story (e.g., US1, US2, US3)
+- Include exact file paths in descriptions
+
+## Phase 1: Setup (Shared Infrastructure)
+
+- [ ] T001 Create project structure per implementation plan
+- [ ] T002 Initialize [language] project with dependencies
+- [ ] T003 [P] Configure linting and formatting tools
+
+---
+
+## Phase 2: Foundational (Blocking Prerequisites)
+
+**⚠️ CRITICAL**: No user story work can begin until complete
+
+- [ ] T004 Setup database schema and migrations framework
+- [ ] T005 [P] Implement authentication/authorization framework
+- [ ] T006 [P] Setup API routing and middleware structure
+
+**Checkpoint**: Foundation ready - user stories can begin
+
+---
+
+## Phase 3: User Story 1 - [Title] (Priority: P1) 🎯 MVP
+
+**Goal**: [Brief description]
+**Independent Test**: [How to verify independently]
+
+### Tests for User Story 1 (OPTIONAL)
+
+- [ ] T010 [P] [US1] Contract test for [endpoint]
+- [ ] T011 [P] [US1] Integration test for [user journey]
+
+### Implementation for User Story 1
+
+- [ ] T012 [P] [US1] Create [Entity1] model in src/models/[entity1].py
+- [ ] T013 [P] [US1] Create [Entity2] model in src/models/[entity2].py
+- [ ] T014 [US1] Implement [Service] in src/services/[service].py
+
+**Checkpoint**: User Story 1 fully functional and testable
+
+---
+
+[Continue for each user story...]
+
+## Dependencies & Execution Order
+
+### Phase Dependencies
+
+- **Setup (Phase 1)**: No dependencies
+- **Foundational (Phase 2)**: Depends on Setup - BLOCKS all stories
+- **User Stories (Phase 3+)**: All depend on Foundational phase
+- **Polish (Final Phase)**: Depends on all desired user stories
+
+### Parallel Opportunities
+
+- All Setup tasks marked [P] can run in parallel
+- Once Foundational completes, user stories can run in parallel
+- Models within a story marked [P] can run in parallel
+```
+</Accordion>
+
+<Tip>
+**Key Principles:**
+- Tasks organized by user story for independent implementation
+- Mark parallel tasks with `[P]` (different files, no dependencies)
+- Include exact file paths for each task
+- Tests are OPTIONAL - only include if requested
+- Each user story should have a checkpoint for validation
+</Tip>
+
+### Constitution Template
+
+**File**: `constitution-template.md`
+
+**Purpose**: Define project principles and development guidelines
+
+<Accordion title="Structure">
+```markdown
+# Project Constitution: [PROJECT NAME]
+
+## Purpose
+
+This document defines the governing principles and guidelines for [PROJECT NAME].
+
+## Core Principles
+
+### 1. Code Quality
+
+- [Principle about code quality]
+- [Specific standards]
+
+### 2. Testing Standards
+
+- [Testing requirements]
+- [Coverage expectations]
+
+### 3. User Experience
+
+- [UX consistency principles]
+- [Accessibility requirements]
+
+### 4. Performance Requirements
+
+- [Performance benchmarks]
+- [Optimization priorities]
+
+## Technical Decisions
+
+### Architecture
+
+- [Architecture principles]
+- [Patterns to follow/avoid]
+
+### Dependencies
+
+- [Dependency management rules]
+- [Library selection criteria]
+
+## Development Workflow
+
+- [Branch strategy]
+- [Code review process]
+- [Deployment procedures]
+
+## Constraints
+
+- [Hard constraints that cannot be violated]
+- [Soft preferences]
+```
+</Accordion>
+
+### Checklist Template
+
+**File**: `checklist-template.md`
+
+**Purpose**: Generate custom quality checklists for validation
+
+<Accordion title="Structure">
+```markdown
+# Quality Checklist: [ARTIFACT TYPE]
+
+## Completeness
+
+- [ ] All required sections present
+- [ ] No placeholder text remains
+- [ ] All references valid
+
+## Clarity
+
+- [ ] Language is clear and unambiguous
+- [ ] Technical terms defined
+- [ ] Examples provided where helpful
+
+## Consistency
+
+- [ ] Terminology consistent throughout
+- [ ] Format consistent with project standards
+- [ ] Cross-references accurate
+
+## Coverage
+
+- [ ] All user stories addressed
+- [ ] Edge cases considered
+- [ ] Success criteria measurable
+```
+</Accordion>
+
+### Agent File Template
+
+**File**: `agent-file-template.md`
+
+**Purpose**: Provide context to AI agents about the project
+
+<Accordion title="Structure">
+```markdown
+# [AGENT] Context File
+
+## Project Overview
+
+[Brief description of the project]
+
+## Current Feature
+
+**Branch**: [current-branch]
+**Status**: [status]
+
+## Key Files
+
+- Specification: `specs/[###-feature]/spec.md`
+- Implementation Plan: `specs/[###-feature]/plan.md`
+- Tasks: `specs/[###-feature]/tasks.md`
+
+## Commands Available
+
+- `/speckit.constitution` - Create/update project principles
+- `/speckit.specify` - Create feature specification
+- `/speckit.plan` - Create implementation plan
+- `/speckit.tasks` - Generate task breakdown
+- `/speckit.implement` - Execute implementation
+```
+</Accordion>
+
+## Command Templates
+
+Command templates define slash commands available in AI agents. They're stored in `templates/commands/`:
+
+<Accordion title="Available Command Templates">
+- `analyze.md` - Cross-artifact consistency analysis
+- `checklist.md` - Generate quality checklists
+- `clarify.md` - Clarify underspecified areas
+- `constitution.md` - Create project principles
+- `implement.md` - Execute implementation tasks
+- `plan.md` - Create technical plans
+- `specify.md` - Define feature requirements
+- `tasks.md` - Generate task breakdowns
+- `taskstoissues.md` - Convert tasks to GitHub issues
+</Accordion>
+
+## Customizing Templates
+
+### When to Customize
+
+Customize templates when:
+- Your organization has specific documentation standards
+- You need additional sections for compliance
+- Your tech stack requires different structure
+- You want to enforce specific patterns
+
+<Warning>
+Don't over-customize - templates should remain technology-agnostic where possible.
+</Warning>
+
+### How to Customize
+
+<CodeGroup>
+```bash Copy template
+# Copy original template to your project
+cp .specify/templates/spec-template.md .specify/templates/spec-template.custom.md
+```
+
+```bash Edit template
+# Edit your custom template
+vim .specify/templates/spec-template.custom.md
+```
+
+```bash Use custom template
+# Reference in commands or scripts
+TEMPLATE=".specify/templates/spec-template.custom.md"
+```
+</CodeGroup>
+
+### Customization Examples
+
+<Accordion title="Add Security Section">
+```markdown
+## Security Considerations
+
+### Authentication & Authorization
+
+- [Auth requirements]
+- [Permission model]
+
+### Data Protection
+
+- [Encryption requirements]
+- [PII handling]
+
+### Compliance
+
+- [Regulatory requirements: GDPR, HIPAA, etc.]
+- [Audit logging needs]
+```
+</Accordion>
+
+<Accordion title="Add Performance Benchmarks">
+```markdown
+## Performance Requirements
+
+### Response Times
+
+- **P95 Latency**: < [X]ms
+- **P99 Latency**: < [Y]ms
+- **Throughput**: > [N] requests/second
+
+### Resource Limits
+
+- **Memory**: < [X]MB per request
+- **CPU**: < [Y]% sustained
+- **Storage**: < [Z]GB total
+```
+</Accordion>
+
+<Accordion title="Add Accessibility Section">
+```markdown
+## Accessibility Requirements
+
+### WCAG Compliance
+
+- **Level**: [A / AA / AAA]
+- **Screen Reader Support**: [Required/Optional]
+- **Keyboard Navigation**: [Full/Partial]
+
+### Internationalization
+
+- **Languages**: [List supported languages]
+- **RTL Support**: [Yes/No]
+- **Date/Time Formats**: [Localization requirements]
+```
+</Accordion>
+
+## Template Variables
+
+Templates use standard placeholders that get replaced during processing:
+
+| Variable | Replaced With | Example |
+|----------|---------------|----------|
+| `[FEATURE NAME]` | Feature name | "User Authentication" |
+| `[###-feature-name]` | Branch name | "001-user-auth" |
+| `[DATE]` | Current date | "2026-03-01" |
+| `$ARGUMENTS` | User input | User-provided text |
+| `{SCRIPT}` | Script path | `.specify/scripts/bash/helper.sh` |
+| `__AGENT__` | Agent name | "Claude" |
+
+## Template Best Practices
+
+### Keep Technology-Agnostic
+
+<CodeGroup>
+```markdown ❌ Bad - Too specific
+## Technical Stack
+
+- **Frontend**: React 18.2 with TypeScript
+- **Backend**: Node.js 20 with Express
+- **Database**: PostgreSQL 15
+```
+
+```markdown ✅ Good - Flexible
+## Technical Context
+
+**Language/Version**: [e.g., JavaScript/TypeScript, Python, etc.]
+**Primary Dependencies**: [e.g., web framework, libraries]
+**Storage**: [e.g., SQL database, NoSQL, files]
+```
+</CodeGroup>
+
+### Use Clear Placeholders
+
+<CodeGroup>
+```markdown ❌ Bad - Vague
+[Describe the feature]
+```
+
+```markdown ✅ Good - Clear
+[Describe this user journey in plain language, focusing on WHO does WHAT and WHY]
+```
+</CodeGroup>
+
+### Include Examples
+
+<CodeGroup>
+```markdown ✅ With example
+### Functional Requirements
+
+- **FR-001**: System MUST [specific capability, e.g., "allow users to create accounts"]
+- **FR-002**: System MUST [specific capability, e.g., "validate email addresses"]
+```
+</CodeGroup>
+
+### Provide Guidance
+
+<CodeGroup>
+```markdown ✅ With guidance
+<!--
+  IMPORTANT: User stories should be PRIORITIZED as user journeys ordered by importance.
+  Each user story/journey must be INDEPENDENTLY TESTABLE - meaning if you implement
+  just ONE of them, you should still have a viable MVP that delivers value.
+-->
+```
+</CodeGroup>
+
+## Version Control
+
+Templates should be version controlled:
+
+**Do commit:**
+- `.specify/templates/*.md` - All template files
+- `.specify/templates/commands/*.md` - Command templates
+- Custom template modifications
+
+**Don't commit:**
+- Generated files (spec.md, plan.md, tasks.md in specs/ directory)
+- Agent-specific command files (.claude/commands/, etc.)
+- Temporary template backups
+
+<CodeGroup>
+```gitignore .gitignore
+# Commit templates
+!.specify/templates/
+
+# Don't commit generated files
+specs/*/spec.md
+specs/*/plan.md
+specs/*/tasks.md
+
+# Don't commit agent command registrations
+.claude/commands/
+.opencode/command/
+```
+</CodeGroup>
+
+## Template Validation
+
+Validate templates ensure they meet your standards:
+
+<CodeGroup>
+```bash Check for placeholders
+# Ensure no [PLACEHOLDER] text remains
+grep -r "\[PLACEHOLDER\]" specs/001-feature/
+```
+
+```bash Check required sections
+# Ensure all required sections present
+grep "## User Scenarios" specs/001-feature/spec.md
+grep "## Requirements" specs/001-feature/spec.md
+grep "## Success Criteria" specs/001-feature/spec.md
+```
+
+```bash Lint markdown
+# Use markdownlint for consistency
+markdownlint specs/001-feature/*.md
+```
+</CodeGroup>
+
+## Template Inheritance
+
+For complex projects, you can create template hierarchies:
+
+```text
+.specify/templates/
+├── base/
+│   ├── spec-template.md       # Base template
+│   └── plan-template.md       # Base template
+├── mobile/
+│   ├── spec-template.md       # Mobile-specific
+│   └── plan-template.md       # Mobile-specific
+└── web/
+    ├── spec-template.md       # Web-specific
+    └── plan-template.md       # Web-specific
+```
+
+## Related Resources
+
+- [Templates Directory](https://github.com/github/spec-kit/tree/main/templates)
+- [Command Templates](https://github.com/github/spec-kit/tree/main/templates/commands)
+- [Spec-Driven Development Guide](/methodology/spec-driven-development)

@@ -1,0 +1,496 @@
+---
+title: /speckit.checklist
+description: Generate domain-specific quality validation checklists
+---
+
+The `/speckit.checklist` command generates custom quality validation checklists that act as "unit tests for requirements" - they validate the quality, clarity, and completeness of requirements in a specific domain.
+
+## Purpose
+
+Create checklists that validate **requirement quality**:
+- Test if requirements are well-written (not if code works)
+- Check completeness, clarity, and consistency
+- Ensure measurability and testability
+- Identify gaps, ambiguities, and conflicts
+- Validate coverage of scenarios and edge cases
+
+<Note>
+  Checklists are **NOT** for testing implementation. They test whether **requirements themselves** are complete, clear, and ready for implementation.
+</Note>
+
+## Core Concept: Unit Tests for English
+
+Think of checklists as unit tests for your specification:
+
+<CodeGroup>
+```markdown Wrong Approach (Testing Implementation)
+- [ ] Verify the button clicks correctly
+- [ ] Test error handling works
+- [ ] Confirm API returns 200
+```
+
+```markdown Correct Approach (Testing Requirements)
+- [ ] Are visual hierarchy requirements defined for all card types? [Completeness]
+- [ ] Is "prominent display" quantified with specific sizing/positioning? [Clarity]
+- [ ] Are hover state requirements consistent across all interactive elements? [Consistency]
+- [ ] Are accessibility requirements defined for keyboard navigation? [Coverage]
+```
+</CodeGroup>
+
+## Usage
+
+```bash
+# Generate domain-specific checklist
+/speckit.checklist Create a security checklist
+
+# Generate with specific focus
+/speckit.checklist UX requirements quality checklist
+
+# Generate for API contracts
+/speckit.checklist Validate API contract completeness
+
+# Generate with depth hint
+/speckit.checklist Lightweight pre-commit sanity list for performance requirements
+```
+
+## How It Works
+
+<Steps>
+  <Step title="Setup">
+    Runs prerequisite check and parses:
+    - `FEATURE_DIR`: Current feature directory
+    - `AVAILABLE_DOCS`: List of available documents (spec, plan, tasks, etc.)
+  </Step>
+  
+  <Step title="Clarify Intent (Dynamic)">
+    Asks up to 3 contextual questions based on:
+    - Your phrasing and domain keywords
+    - Signals from spec/plan/tasks
+    - Risk indicators
+    - Stakeholder hints
+    
+    Questions focus on:
+    - Scope refinement
+    - Risk prioritization
+    - Depth calibration
+    - Audience framing
+    - Boundary exclusion
+    
+    **Skips questions if already clear from your input**
+  </Step>
+  
+  <Step title="Understand Request">
+    Combines your input + clarifying answers to derive:
+    - Checklist theme (security, UX, API, performance, etc.)
+    - Must-have items you mentioned
+    - Focus areas (completeness, clarity, coverage, etc.)
+  </Step>
+  
+  <Step title="Load Feature Context">
+    Reads relevant portions of:
+    - spec.md (requirements, user stories)
+    - plan.md (technical decisions, if exists)
+    - tasks.md (implementation tasks, if exists)
+    
+    Uses progressive disclosure (loads only what's needed)
+  </Step>
+  
+  <Step title="Generate Checklist">
+    Creates checklist testing **requirement quality**:
+    - Groups items by quality dimension (Completeness, Clarity, Consistency, etc.)
+    - Numbers items sequentially (CHK001, CHK002, ...)
+    - Includes traceability references `[Spec §X.Y]`, `[Gap]`, `[Ambiguity]`
+    - Ensures ≥80% of items have traceability markers
+    - Caps at ~40 items (prioritizes by risk/impact if more)
+  </Step>
+  
+  <Step title="Create Checklist File">
+    Writes to `FEATURE_DIR/checklists/[domain].md`:
+    - Short, descriptive filename (e.g., `ux.md`, `security.md`, `api.md`)
+    - If file exists with same name, appends to existing
+    - Each run creates a NEW file (never overwrites existing checklists)
+  </Step>
+  
+  <Step title="Report">
+    Outputs:
+    - Full path to created checklist
+    - Item count
+    - Focus areas selected
+    - Depth level
+    - Any user-specified must-have items incorporated
+  </Step>
+</Steps>
+
+## Checklist Structure
+
+### Metadata
+
+```markdown
+# Security Requirements Quality Checklist
+
+**Purpose**: Validate security requirement completeness and clarity before implementation  
+**Created**: 2024-03-15  
+**Feature**: [Link to spec.md]
+```
+
+### Quality Dimensions
+
+Items grouped by what they test:
+
+<CodeGroup>
+```markdown Requirement Completeness
+## Requirement Completeness
+
+- [ ] CHK001 - Are authentication requirements specified for all protected resources? [Coverage]
+- [ ] CHK002 - Are password policy requirements explicitly defined (length, complexity, expiration)? [Completeness, Spec §FR-002]
+- [ ] CHK003 - Are session management requirements documented (timeout, renewal, revocation)? [Gap]
+- [ ] CHK004 - Are authorization requirements defined for each user role? [Coverage, Spec §FR-007]
+```
+
+```markdown Requirement Clarity
+## Requirement Clarity
+
+- [ ] CHK005 - Is "secure password storage" quantified with specific algorithm (bcrypt, Argon2)? [Clarity, Spec §FR-002]
+- [ ] CHK006 - Is "session timeout" defined with exact duration? [Ambiguity, Spec §FR-008]
+- [ ] CHK007 - Are "failed login attempt" thresholds specified (count, duration)? [Clarity, Spec §FR-003]
+- [ ] CHK008 - Is "secure communication" defined as HTTPS with specific TLS version? [Clarity, Spec §NFR-001]
+```
+
+```markdown Requirement Consistency
+## Requirement Consistency
+
+- [ ] CHK009 - Do authentication requirements align across API and UI specifications? [Consistency]
+- [ ] CHK010 - Are password requirements consistent between registration and reset flows? [Consistency, Spec §FR-002, FR-014]
+- [ ] CHK011 - Is session token terminology used consistently (not mixed with "auth token")? [Consistency]
+```
+
+```markdown Scenario Coverage
+## Scenario Coverage
+
+- [ ] CHK012 - Are requirements defined for concurrent login attempts from different locations? [Coverage, Edge Case]
+- [ ] CHK013 - Are requirements specified for OAuth provider unavailability? [Coverage, Exception Flow, Spec §US3]
+- [ ] CHK014 - Are account recovery requirements defined for locked accounts? [Gap]
+- [ ] CHK015 - Are requirements specified for expired password reset tokens? [Coverage, Spec §US2]
+```
+
+```markdown Security-Specific
+## Security-Specific Requirements
+
+- [ ] CHK016 - Are requirements defined for protecting against brute force attacks? [Coverage, Spec §FR-003]
+- [ ] CHK017 - Are CSRF protection requirements specified for state-changing operations? [Gap]
+- [ ] CHK018 - Are requirements defined for sanitizing user input to prevent injection attacks? [Coverage]
+- [ ] CHK019 - Is the threat model documented and requirements aligned to it? [Traceability]
+```
+</CodeGroup>
+
+## Checklist Types
+
+Common domain-specific checklists:
+
+### UX Requirements Quality
+
+```markdown
+# UX Requirements Quality Checklist
+
+## Visual Hierarchy
+
+- [ ] CHK001 - Are visual hierarchy requirements defined with measurable criteria? [Clarity, Spec §FR-001]
+- [ ] CHK002 - Is the number and positioning of UI elements explicitly specified? [Completeness]
+- [ ] CHK003 - Can "prominent display" be objectively measured (size, placement, contrast)? [Measurability]
+
+## Interaction States
+
+- [ ] CHK004 - Are hover state requirements consistently defined for all interactive elements? [Consistency]
+- [ ] CHK005 - Are focus state requirements specified for keyboard navigation? [Coverage, Gap]
+- [ ] CHK006 - Are loading state requirements defined for asynchronous operations? [Completeness]
+
+## Accessibility
+
+- [ ] CHK007 - Are keyboard navigation requirements specified for all interactive UI? [Coverage]
+- [ ] CHK008 - Are screen reader requirements defined for dynamic content? [Gap]
+- [ ] CHK009 - Are color contrast requirements specified (WCAG 2.1 AA minimum)? [Clarity]
+
+## Edge Cases
+
+- [ ] CHK010 - Is fallback behavior defined when images fail to load? [Edge Case, Gap]
+- [ ] CHK011 - Are empty state requirements specified (no data to display)? [Coverage]
+- [ ] CHK012 - Are overflow requirements defined for long text content? [Edge Case]
+```
+
+### API Requirements Quality
+
+```markdown
+# API Requirements Quality Checklist
+
+## Contract Completeness
+
+- [ ] CHK001 - Are request/response schemas defined for all endpoints? [Completeness]
+- [ ] CHK002 - Are HTTP status codes specified for success and all error scenarios? [Coverage]
+- [ ] CHK003 - Are error response formats consistent across all endpoints? [Consistency]
+
+## Clarity
+
+- [ ] CHK004 - Are rate limiting requirements quantified with specific thresholds? [Clarity, Spec §NFR-003]
+- [ ] CHK005 - Are pagination parameters explicitly defined (offset/limit or cursor-based)? [Clarity]
+- [ ] CHK006 - Is API versioning strategy documented in requirements? [Gap]
+
+## Error Handling
+
+- [ ] CHK007 - Are error handling requirements defined for all external dependency failures? [Coverage]
+- [ ] CHK008 - Are retry/timeout requirements specified for each external service call? [Gap]
+- [ ] CHK009 - Are idempotency requirements defined for non-safe operations? [Coverage]
+
+## Non-Functional
+
+- [ ] CHK010 - Are performance requirements quantified (response time, throughput)? [Clarity, Spec §NFR-001]
+- [ ] CHK011 - Are authentication requirements specified for all protected endpoints? [Coverage]
+- [ ] CHK012 - Are CORS requirements defined for cross-origin requests? [Gap]
+```
+
+### Performance Requirements Quality
+
+```markdown
+# Performance Requirements Quality Checklist
+
+## Measurability
+
+- [ ] CHK001 - Are performance requirements quantified with specific metrics (ms, req/s, MB)? [Clarity]
+- [ ] CHK002 - Are percentile targets specified (p50, p95, p99) not just averages? [Measurability]
+- [ ] CHK003 - Can performance requirements be objectively measured in production? [Testability]
+
+## Coverage
+
+- [ ] CHK004 - Are performance targets defined for all critical user journeys? [Coverage]
+- [ ] CHK005 - Are performance requirements specified under different load conditions? [Completeness]
+- [ ] CHK006 - Are database query performance requirements defined? [Gap]
+
+## Degradation
+
+- [ ] CHK007 - Are graceful degradation requirements defined for high-load scenarios? [Edge Case, Gap]
+- [ ] CHK008 - Are timeout requirements specified for all external dependencies? [Coverage]
+- [ ] CHK009 - Are caching requirements defined to meet performance targets? [Completeness]
+```
+
+## Item Format
+
+### Required Structure
+
+```markdown
+- [ ] CHK### - [Question about requirement quality] [Quality Dimension, Traceability]
+```
+
+### Components
+
+1. **Checkbox**: `- [ ]` (markdown task)
+2. **ID**: `CHK###` (sequential, starting CHK001)
+3. **Separator**: ` - `
+4. **Question**: Testing requirement quality (not implementation)
+5. **Markers**: `[Dimension]`, `[Spec §X.Y]`, `[Gap]`, etc.
+
+### Traceability Markers
+
+- `[Spec §X.Y]`: References existing spec section
+- `[Gap]`: Identifies missing requirements
+- `[Ambiguity]`: Flags unclear requirements
+- `[Conflict]`: Notes contradictory requirements
+- `[Assumption]`: Questions undocumented assumptions
+- `[Completeness]`, `[Clarity]`, `[Consistency]`, `[Coverage]`, `[Measurability]`: Quality dimensions
+
+## Clarification Questions
+
+Dynamic questions based on your request:
+
+<CodeGroup>
+```text Scope Refinement
+## Question 1: Scope Breadth
+
+**Context**: You requested a "security checklist" but didn't specify scope.
+
+**What we need to know**: Should this cover integration touchpoints with external services or stay limited to local authentication logic?
+
+| Option | Candidate | Why It Matters |
+|--------|-----------|----------------|
+| A | Local authentication only | Focused checklist (~15 items), faster to complete |
+| B | Include OAuth integration | Comprehensive coverage (~30 items), catches more issues |
+| C | Full stack (auth + API security + data protection) | Thorough but lengthy (~50 items) |
+
+**Your choice**: _[Wait for response]_
+```
+
+```text Risk Prioritization
+## Question 2: Risk Focus
+
+**Context**: Security requirements span multiple risk areas.
+
+**What we need to know**: Which risk areas should receive mandatory gating checks?
+
+| Option | Candidate | Why It Matters |
+|--------|-----------|----------------|
+| A | Authentication & authorization | Core security foundation |
+| B | Data protection (encryption, privacy) | Critical for compliance |
+| C | Both + input validation & injection prevention | Comprehensive security posture |
+| D | All of above + audit logging & monitoring | Full observability |
+
+**Your choice**: _[Wait for response]_
+```
+
+```text Depth Calibration
+## Question 3: Checklist Depth
+
+**Context**: No depth indicator in request.
+
+**What we need to know**: Is this a lightweight pre-commit sanity list or a formal release gate?
+
+| Option | Candidate | Why It Matters |
+|--------|-----------|----------------|
+| A | Lightweight (~10-15 critical items) | Quick validation, author self-check |
+| B | Standard (~20-30 items) | Balanced, suitable for PR review |
+| C | Comprehensive (~40-50 items) | Formal release gate, catches everything |
+
+**Your choice**: _[Wait for response]_
+```
+</CodeGroup>
+
+## Real-World Example
+
+<CodeGroup>
+```bash Command
+/speckit.checklist Create a comprehensive security requirements checklist
+```
+
+```text Console Output
+✓ Setup complete
+  - Feature directory: specs/003-user-auth/
+  - Available docs: spec.md, plan.md, tasks.md
+
+✓ Clarifying intent (3 questions)...
+
+## Question 1: Scope Breadth
+[... presents options ...]
+User: B
+
+## Question 2: Risk Focus  
+[... presents options ...]
+User: C
+
+## Question 3: Depth
+[... presents options ...]
+User: Standard
+
+✓ Understood request:
+  - Theme: Security requirements quality
+  - Scope: Local auth + OAuth integration
+  - Risk areas: Auth, data protection, input validation
+  - Depth: Standard (~30 items)
+  - Audience: PR reviewer
+
+✓ Loading feature context...
+  - Spec: 24 requirements (8 security-related)
+  - Plan: OAuth2 PKCE flow, bcrypt, PostgreSQL
+  - User stories: Login, password reset, OAuth social login
+
+✓ Generating checklist (testing requirement quality)...
+  - Requirement Completeness: 7 items
+  - Requirement Clarity: 6 items
+  - Requirement Consistency: 4 items
+  - Scenario Coverage: 8 items
+  - Security-Specific: 6 items
+  - Total: 31 items (within target range)
+  - Traceability: 27/31 items (87%) have references
+
+✓ Created: specs/003-user-auth/checklists/security.md
+
+Summary:
+  - Checklist: security.md
+  - Total items: 31
+  - Focus areas: Auth, data protection, input validation, OAuth
+  - Depth: Standard (PR review level)
+  - Traceability: 87% of items reference spec sections or identify gaps
+
+Next steps:
+  - Review checklist: specs/003-user-auth/checklists/security.md
+  - Complete all items before implementation
+  - Run /speckit.implement (will validate checklists first)
+```
+</CodeGroup>
+
+## Best Practices
+
+### Generate Multiple Checklists
+
+Create domain-specific checklists:
+
+```bash
+/speckit.checklist Create a UX requirements quality checklist
+/speckit.checklist Create a security requirements checklist  
+/speckit.checklist Create an API contract completeness checklist
+```
+
+Each creates a separate file:
+- `checklists/ux.md`
+- `checklists/security.md`
+- `checklists/api.md`
+
+### Complete Before Implementation
+
+The `/speckit.implement` command:
+1. Scans all checklists in `checklists/`
+2. Counts incomplete items
+3. **Stops and asks** if any checklist is incomplete
+4. Proceeds automatically if all complete
+
+<Note>
+  Checklists act as **quality gates** before implementation. Complete them to ensure requirements are implementation-ready.
+</Note>
+
+### Focus on High-Impact Domains
+
+Prioritize checklists for:
+- Security (prevents vulnerabilities)
+- UX (ensures usability)
+- Performance (avoids rework)
+- API contracts (prevents breaking changes)
+
+### Answer Clarification Questions Thoughtfully
+
+Your answers shape the checklist:
+- **Scope**: Determines item count and breadth
+- **Risk areas**: Focuses on critical concerns
+- **Depth**: Balances thoroughness vs. speed
+
+## Handoffs
+
+After checklist generation:
+
+<CardGroup cols={2}>
+  <Card title="Complete Checklist" icon="clipboard-check">
+    Review and check off all items in the generated checklist file
+  </Card>
+  
+  <Card title="Fix Issues" icon="wrench">
+    Address any requirement gaps, ambiguities, or conflicts identified
+  </Card>
+  
+  <Card title="Implement" icon="code" href="/commands/implement">
+    Once all checklists complete, proceed to implementation
+  </Card>
+</CardGroup>
+
+## File Structure
+
+```text
+specs/003-user-auth/
+├── spec.md
+├── plan.md
+├── tasks.md
+└── checklists/                # Checklist directory
+    ├── security.md            # Security requirements quality
+    ├── ux.md                  # UX requirements quality
+    └── api.md                 # API contract completeness
+```
+
+## Next Steps
+
+<Card title="Implement" icon="code" href="/commands/implement">
+  Complete all checklists, then execute the implementation plan
+</Card>

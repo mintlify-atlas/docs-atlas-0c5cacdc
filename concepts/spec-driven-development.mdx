@@ -1,0 +1,116 @@
+---
+title: 'What is Spec-Driven Development?'
+description: 'Understand how SDD inverts the traditional relationship between specifications and code, making specs executable and eliminating the implementation gap.'
+---
+
+## The Power Inversion
+
+For decades, code has been king. Specifications served code—they were the scaffolding we built and then discarded once the "real work" of coding began. We wrote PRDs to guide development, created design docs to inform implementation, drew diagrams to visualize architecture. But these were always subordinate to the code itself.
+
+<Note>
+Code was truth. Everything else was, at best, good intentions.
+</Note>
+
+**Spec-Driven Development (SDD) inverts this power structure.** Specifications don't serve code—code serves specifications. The Product Requirements Document (PRD) isn't a guide for implementation; it's the source that generates implementation. Technical plans aren't documents that inform coding; they're precise definitions that produce code.
+
+This isn't an incremental improvement to how we build software. **It's a fundamental rethinking of what drives development.**
+
+## The Fundamental Problem
+
+The gap between specification and implementation has plagued software development since its inception. We've tried to bridge it with:
+
+- Better documentation
+- More detailed requirements  
+- Stricter processes
+
+These approaches fail because they accept the gap as inevitable. They try to narrow it but never eliminate it.
+
+<Info>
+SDD eliminates the gap by making specifications and their concrete implementation plans **executable**. When specifications and implementation plans generate code, there is no gap—only transformation.
+</Info>
+
+## Why Now?
+
+This transformation is possible because AI can now understand and implement complex specifications, and create detailed implementation plans. But raw AI generation without structure produces chaos.
+
+**SDD provides that structure** through specifications and subsequent implementation plans that are precise, complete, and unambiguous enough to generate working systems.
+
+## Three Converging Trends
+
+Three trends make SDD not just possible but necessary:
+
+<CardGroup cols={3}>
+  <Card title="AI Capabilities" icon="brain">
+    AI has reached a threshold where natural language specifications can reliably generate working code. This isn't about replacing developers—it's about amplifying their effectiveness by automating the mechanical translation from specification to implementation.
+  </Card>
+  
+  <Card title="Growing Complexity" icon="network-wired">
+    Modern systems integrate dozens of services, frameworks, and dependencies. Keeping all these pieces aligned with original intent through manual processes becomes increasingly difficult. SDD provides systematic alignment through specification-driven generation.
+  </Card>
+  
+  <Card title="Accelerating Change" icon="rocket">
+    Requirements change far more rapidly today than ever before. Pivoting is no longer exceptional—it's expected. Traditional development treats these changes as disruptions. SDD transforms requirement changes from obstacles into normal workflow.
+  </Card>
+</CardGroup>
+
+## The New Development Paradigm
+
+In this new world:
+
+<Steps>
+  <Step title="Specifications are primary">
+    The intent of the development team is expressed in natural language ("**intent-driven development**"), design assets, core principles and other guidelines. The **lingua franca** of development moves to a higher level, and code is the last-mile approach.
+  </Step>
+  
+  <Step title="Maintenance means evolution">
+    Maintaining software means evolving specifications. Debugging means fixing specifications and their implementation plans that generate incorrect code. Refactoring means restructuring specifications for clarity.
+  </Step>
+  
+  <Step title="Focus on creativity">
+    The development team focuses on their creativity, experimentation, and critical thinking. The mechanical translation to code is automated, freeing developers to focus on solving the right problems.
+  </Step>
+</Steps>
+
+## What SDD Enables
+
+The entire development workflow reorganizes around specifications as the central source of truth, with implementation plans and code as the continuously regenerated output.
+
+### Rapid Pivoting
+
+When specifications drive implementation, pivots become systematic regenerations rather than manual rewrites:
+
+- Change a core requirement in the PRD → affected implementation plans update automatically
+- Modify a user story → corresponding API endpoints regenerate
+- Update acceptance criteria → implementation plans flag affected technical decisions
+
+### What-If Experiments
+
+SDD supports simulation experiments: *"If we need to re-implement or change the application to promote a business need to sell more T-shirts, how would we implement and experiment for that?"*
+
+### Parallel Exploration
+
+Generate multiple implementation approaches from the same specification to explore different optimization targets—performance, maintainability, user experience, cost.
+
+## The Transformation
+
+<Note>
+This isn't about replacing developers or automating creativity. It's about amplifying human capability by automating mechanical translation.
+</Note>
+
+It's about creating a tight feedback loop where specifications, research, and code evolve together, each iteration bringing deeper understanding and better alignment between intent and implementation.
+
+Software development needs better tools for maintaining alignment between intent and implementation. **SDD provides the methodology for achieving this alignment through executable specifications that generate code rather than merely guiding it.**
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Understand the Workflow" icon="diagram-project" href="/concepts/workflow">
+    Learn the step-by-step process of practicing Spec-Driven Development
+  </Card>
+  
+  <Card title="Explore the Philosophy" icon="lightbulb" href="/concepts/philosophy">
+    Dive deep into the core principles and design decisions behind SDD
+  </Card>
+</CardGroup>

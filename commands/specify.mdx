@@ -1,0 +1,428 @@
+---
+title: /speckit.specify
+description: Create feature specifications from natural language descriptions
+---
+
+The `/speckit.specify` command transforms natural language feature descriptions into structured, implementation-ready specifications.
+
+## Purpose
+
+Generate complete feature specifications that:
+- Focus on **what** users need and **why** (not implementation details)
+- Organize requirements by user journeys with clear priorities
+- Include measurable success criteria
+- Identify gaps and ambiguities for clarification
+- Create numbered feature branches automatically
+
+<Note>
+  Specifications are **technology-agnostic** and written for business stakeholders, not developers. No code, frameworks, or implementation details.
+</Note>
+
+## Usage
+
+```bash
+# Create a new feature specification
+/speckit.specify Add user authentication with OAuth2 support
+
+# More complex feature
+/speckit.specify Build a dashboard showing real-time analytics with filtering by date range and user segments
+
+# From a detailed description
+/speckit.specify I want to add a payment processing feature that supports credit cards and PayPal, handles refunds, and sends email receipts to customers
+```
+
+## How It Works
+
+<Steps>
+  <Step title="Generate Short Name">
+    Analyzes your description and creates a 2-4 word branch name:
+    - "Add user authentication" → `user-auth`
+    - "Build analytics dashboard" → `analytics-dashboard`
+    - "Fix payment timeout bug" → `fix-payment-timeout`
+  </Step>
+  
+  <Step title="Check Existing Branches">
+    Finds the next available number by checking:
+    - Remote branches: `git ls-remote --heads origin`
+    - Local branches: `git branch`
+    - Specs directories: `specs/###-*`
+    
+    If `user-auth` already exists as `002-user-auth`, creates `003-user-auth`
+  </Step>
+  
+  <Step title="Create Branch and Structure">
+    Runs initialization script to:
+    - Create branch `###-feature-name`
+    - Create directory `specs/###-feature-name/`
+    - Initialize `spec.md` from template
+    - Check out the new branch
+  </Step>
+  
+  <Step title="Generate Specification">
+    Fills the spec template with:
+    - User stories organized by priority (P1, P2, P3)
+    - Functional requirements (testable, unambiguous)
+    - Success criteria (measurable, technology-agnostic)
+    - Key entities (if data is involved)
+    - Edge cases
+    - Assumptions for reasonable defaults
+    - `[NEEDS CLARIFICATION]` markers (max 3) for critical unknowns
+  </Step>
+  
+  <Step title="Validate Quality">
+    Creates `checklists/requirements.md` and validates:
+    - No implementation details leaked
+    - All requirements are testable
+    - Success criteria are measurable
+    - Acceptance scenarios defined
+    - No more than 3 clarification markers
+  </Step>
+  
+  <Step title="Handle Clarifications (if needed)">
+    If `[NEEDS CLARIFICATION]` markers exist:
+    - Present each as a multiple-choice question with implications
+    - Wait for user responses
+    - Update spec with selected answers
+    - Re-validate quality
+  </Step>
+</Steps>
+
+## Specification Structure
+
+### Metadata
+
+```markdown
+# Feature Specification: User Authentication
+
+**Feature Branch**: `003-user-auth`  
+**Created**: 2024-03-15  
+**Status**: Draft
+```
+
+### User Scenarios & Testing
+
+The core of every spec - user journeys ordered by priority:
+
+<CodeGroup>
+```markdown Priority 1: Core Value
+### User Story 1 - Basic Login (Priority: P1)
+
+Users can log in with email and password to access protected features.
+
+**Why this priority**: This is the MVP - without login, no other auth features matter.
+
+**Independent Test**: Can be fully tested by creating an account, logging in, and accessing a protected page. Delivers immediate value by protecting sensitive features.
+
+**Acceptance Scenarios**:
+
+1. **Given** a user with valid credentials, **When** they enter email and password, **Then** they are redirected to the dashboard
+2. **Given** a user with invalid credentials, **When** they attempt login, **Then** they see a clear error message and remain on login page
+3. **Given** a user has been inactive for 30 minutes, **When** they attempt any action, **Then** they are redirected to login
+```
+
+```markdown Priority 2: Enhanced UX
+### User Story 2 - Password Reset (Priority: P2)
+
+Users can reset forgotten passwords via email link without contacting support.
+
+**Why this priority**: Reduces support burden and improves user experience, but system is functional without it.
+
+**Independent Test**: Can be tested independently by requesting password reset, receiving email, and setting new password. Delivers value by reducing support tickets.
+
+**Acceptance Scenarios**:
+
+1. **Given** a user forgot their password, **When** they request reset, **Then** they receive an email with a time-limited reset link
+2. **Given** a user clicks a valid reset link, **When** they set a new password, **Then** they can log in with the new password
+3. **Given** a user clicks an expired reset link, **When** they attempt to reset, **Then** they see an error and can request a new link
+```
+
+```markdown Priority 3: Advanced Features
+### User Story 3 - OAuth2 Social Login (Priority: P3)
+
+Users can log in using their Google or GitHub accounts for convenience.
+
+**Why this priority**: Nice-to-have feature that improves UX but isn't essential for MVP.
+
+**Independent Test**: Can be tested by clicking OAuth provider button, authorizing, and accessing dashboard. Delivers value by reducing friction for new users.
+
+**Acceptance Scenarios**:
+
+1. **Given** a new user clicks "Login with Google", **When** they authorize the app, **Then** an account is created and they are logged in
+2. **Given** an existing user with Google linked, **When** they login via Google, **Then** they access their existing account
+3. **Given** OAuth provider is unavailable, **When** user attempts social login, **Then** they see an error and can use email/password instead
+```
+</CodeGroup>
+
+### Edge Cases
+
+```markdown
+### Edge Cases
+
+- What happens when email service is down during password reset?
+- How does the system handle concurrent login attempts from different locations?
+- What happens if OAuth provider revokes access mid-session?
+- How are accounts handled when user changes their email at the OAuth provider?
+```
+
+### Requirements
+
+<CodeGroup>
+```markdown Functional Requirements
+### Functional Requirements
+
+- **FR-001**: System MUST securely hash passwords using bcrypt or Argon2
+- **FR-002**: System MUST enforce password requirements: minimum 12 characters, mix of letters/numbers/symbols
+- **FR-003**: System MUST lock accounts after 5 failed login attempts for 15 minutes
+- **FR-004**: System MUST expire password reset tokens after 1 hour
+- **FR-005**: System MUST generate secure session tokens with 24-hour expiration
+- **FR-006**: System MUST support OAuth2 authorization code flow with PKCE
+- **FR-007**: System MUST revoke all user sessions when password is changed
+```
+
+```markdown Key Entities
+### Key Entities
+
+- **User**: Represents an authenticated account with email, hashed password, registration date, last login timestamp
+- **Session**: Represents an active login session with secure token, user reference, expiration time, IP address
+- **PasswordReset**: Represents a password reset request with secure token, user reference, expiration time, used status
+- **OAuthConnection**: Represents a linked OAuth provider with provider name, provider user ID, user reference
+```
+</CodeGroup>
+
+### Success Criteria
+
+Measurable, technology-agnostic outcomes:
+
+```markdown
+## Success Criteria
+
+### Measurable Outcomes
+
+- **SC-001**: Users can complete login in under 5 seconds
+- **SC-002**: Password reset emails arrive within 1 minute
+- **SC-003**: System handles 1,000 concurrent login attempts without degradation
+- **SC-004**: 95% of users successfully log in on first attempt (excluding forgotten passwords)
+- **SC-005**: Password reset flow completes in under 2 minutes from request to new login
+- **SC-006**: OAuth login completes in under 10 seconds
+- **SC-007**: Zero plaintext passwords stored anywhere in the system
+```
+
+## Clarification Workflow
+
+If the AI identifies critical ambiguities, it marks them and asks questions:
+
+<CodeGroup>
+```markdown Marked for Clarification
+### Functional Requirements
+
+- **FR-006**: System MUST authenticate users via [NEEDS CLARIFICATION: auth method not specified - email/password only, OAuth2 only, or both?]
+```
+
+```markdown Question Format
+## Question 1: Authentication Methods
+
+**Context**: The feature description mentions OAuth2, but doesn't specify if traditional email/password login should also be supported.
+
+**What we need to know**: Which authentication methods should the system support?
+
+**Suggested Answers**:
+
+| Option | Answer | Implications |
+|--------|--------|-------------|
+| A | Email/password only | Simpler implementation, no OAuth integration needed, users can't use social login |
+| B | OAuth2 only (Google + GitHub) | No password management, faster onboarding, requires internet connection |
+| C | Both email/password and OAuth2 | Most flexible, more implementation complexity, best user experience |
+| Custom | Provide your own answer | Explain your preferred authentication approach |
+
+**Your choice**: _[Wait for user response]_
+```
+</CodeGroup>
+
+### Clarification Limits
+
+<Warning>
+  Maximum 3 `[NEEDS CLARIFICATION]` markers allowed. The AI makes informed guesses for most details and only asks about decisions that significantly impact scope, security, or UX.
+</Warning>
+
+## Validation Checklist
+
+The command automatically generates `checklists/requirements.md`:
+
+```markdown
+# Specification Quality Checklist: User Authentication
+
+**Purpose**: Validate specification completeness before planning
+**Created**: 2024-03-15
+**Feature**: [Link to spec.md]
+
+## Content Quality
+
+- [ ] No implementation details (languages, frameworks, APIs)
+- [ ] Focused on user value and business needs
+- [ ] Written for non-technical stakeholders
+- [ ] All mandatory sections completed
+
+## Requirement Completeness
+
+- [ ] No [NEEDS CLARIFICATION] markers remain
+- [ ] Requirements are testable and unambiguous
+- [ ] Success criteria are measurable
+- [ ] Success criteria are technology-agnostic
+- [ ] All acceptance scenarios defined
+- [ ] Edge cases identified
+- [ ] Scope is clearly bounded
+
+## Feature Readiness
+
+- [ ] All functional requirements have clear acceptance criteria
+- [ ] User scenarios cover primary flows
+- [ ] Feature meets measurable outcomes
+- [ ] No implementation details leak into specification
+```
+
+## Real-World Example
+
+<CodeGroup>
+```bash Command
+/speckit.specify Add a RESTful API for managing tasks with CRUD operations, filtering by status and priority, and user assignment
+```
+
+```text Console Output
+✓ Generated short name: "task-api"
+✓ Checking existing branches...
+  - Remote branches: 001-user-auth, 002-dashboard
+  - Local branches: 001-user-auth
+  - Specs directories: specs/001-user-auth/, specs/002-dashboard/
+  - Next available number: 003
+
+✓ Running initialization script...
+✓ Created branch: 003-task-api
+✓ Created directory: specs/003-task-api/
+✓ Checked out branch: 003-task-api
+
+✓ Generating specification...
+  - Extracted user stories: 3 (prioritized P1-P3)
+  - Generated functional requirements: 12
+  - Identified key entities: 4
+  - Created success criteria: 8
+  - Assumptions documented: 5
+  - Clarifications needed: 0
+
+✓ Validating quality...
+  - Content quality: PASS
+  - Requirement completeness: PASS
+  - Feature readiness: PASS
+  - Created checklist: specs/003-task-api/checklists/requirements.md
+
+✓ Specification complete!
+
+Branch: 003-task-api
+Spec file: specs/003-task-api/spec.md
+Checklist: specs/003-task-api/checklists/requirements.md
+
+Next steps:
+  - Review spec.md and checklist
+  - Run /speckit.clarify (if needed) to resolve any ambiguities
+  - Run /speckit.plan to create technical implementation plan
+```
+</CodeGroup>
+
+## Best Practices
+
+### Write User-Focused Descriptions
+
+<CodeGroup>
+```bash Good: Focus on user value
+/speckit.specify Users can export their data to CSV format for backup and analysis
+```
+
+```bash Bad: Implementation details
+/speckit.specify Build a CSV export endpoint using pandas that serializes database rows
+```
+</CodeGroup>
+
+### Trust the AI for Defaults
+
+The AI makes reasonable assumptions:
+- **Data retention**: Industry-standard practices
+- **Performance**: Standard web app expectations
+- **Error handling**: User-friendly messages
+- **Auth patterns**: OAuth2 for web services, session-based for traditional apps
+
+Only specify these if your requirements differ significantly from standards.
+
+### Prioritize User Stories Thoughtfully
+
+- **P1**: Minimum viable product - delivers core value independently
+- **P2**: Enhances UX but system works without it
+- **P3**: Nice-to-have features for polish
+
+Each priority should be independently testable and deployable.
+
+## Common Patterns
+
+### Web Services
+
+```bash
+/speckit.specify Create a RESTful API for user management with CRUD operations, pagination, and search
+```
+
+Generates:
+- User stories for each operation (Create, Read, Update, Delete)
+- Pagination requirements
+- Search/filter capabilities
+- Success criteria for response times
+- API versioning assumptions
+
+### CLI Tools
+
+```bash
+/speckit.specify Build a command-line tool for deploying applications with configuration validation and rollback support
+```
+
+Generates:
+- User stories for deploy, validate, rollback
+- CLI argument requirements
+- Output formatting expectations
+- Success criteria for execution time
+
+### UI Features
+
+```bash
+/speckit.specify Add a dashboard showing real-time metrics with customizable widgets and export capabilities
+```
+
+Generates:
+- User stories for viewing, customizing, exporting
+- Widget type requirements
+- Real-time update expectations
+- Success criteria for load times
+
+## Handoffs
+
+After specification is complete:
+
+<CardGroup cols={2}>
+  <Card title="Clarify Requirements" icon="comments" href="/commands/clarify">
+    Resolve ambiguities with targeted questions (if `[NEEDS CLARIFICATION]` markers exist)
+  </Card>
+  
+  <Card title="Build Technical Plan" icon="sitemap" href="/commands/plan">
+    Generate architecture and design decisions (skip clarify if spec is clear)
+  </Card>
+</CardGroup>
+
+## File Structure
+
+```text
+specs/003-task-api/
+├── spec.md                    # Feature specification (this command)
+└── checklists/
+    └── requirements.md        # Quality validation checklist
+```
+
+## Next Steps
+
+<Card title="Clarify" icon="comments" href="/commands/clarify">
+  Learn how to resolve specification ambiguities
+</Card>

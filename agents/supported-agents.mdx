@@ -1,0 +1,420 @@
+---
+title: Supported AI Agents
+description: Complete list of AI coding agents integrated with Spec Kit
+---
+
+## Agent Support Matrix
+
+Spec Kit supports 15+ AI coding agents with built-in integration. Each agent is configured with the appropriate directory structure, command format, and invocation patterns.
+
+<Note>
+If your preferred agent isn't listed, you can use the **Generic** option with `--ai generic --ai-commands-dir <path>` to bring your own agent.
+</Note>
+
+## CLI-Based Agents
+
+These agents require command-line tool installation and can be invoked from the terminal.
+
+<CardGroup cols={2}>
+  <Card title="Claude Code" icon="circle-c" href="https://docs.anthropic.com/en/docs/claude-code/setup">
+    **Anthropic's Claude Code**
+    
+    - **CLI Tool**: `claude`
+    - **Directory**: `.claude/commands/`
+    - **Format**: Markdown (.md)
+    - **Status**: ✅ Fully Supported
+    
+    ```bash
+    specify init my-project --ai claude
+    ```
+  </Card>
+  
+  <Card title="Gemini CLI" icon="sparkles" href="https://github.com/google-gemini/gemini-cli">
+    **Google's Gemini CLI**
+    
+    - **CLI Tool**: `gemini`
+    - **Directory**: `.gemini/commands/`
+    - **Format**: TOML (.toml)
+    - **Status**: ✅ Fully Supported
+    
+    ```bash
+    specify init my-project --ai gemini
+    ```
+  </Card>
+  
+  <Card title="opencode" icon="code" href="https://opencode.ai">
+    **opencode AI Assistant**
+    
+    - **CLI Tool**: `opencode`
+    - **Directory**: `.opencode/command/` (singular)
+    - **Format**: Markdown (.md)
+    - **Status**: ✅ Fully Supported
+    
+    ```bash
+    specify init my-project --ai opencode
+    ```
+  </Card>
+  
+  <Card title="Auggie CLI" icon="terminal" href="https://docs.augmentcode.com/cli/setup-auggie/install-auggie-cli">
+    **Augment's Auggie CLI**
+    
+    - **CLI Tool**: `auggie`
+    - **Directory**: `.augment/commands/`
+    - **Format**: Markdown (.md)
+    - **Status**: ✅ Fully Supported
+    
+    ```bash
+    specify init my-project --ai auggie
+    ```
+  </Card>
+  
+  <Card title="Codex CLI" icon="openai" href="https://github.com/openai/codex">
+    **OpenAI's Codex CLI**
+    
+    - **CLI Tool**: `codex`
+    - **Directory**: `.codex/prompts/`
+    - **Format**: Markdown (.md)
+    - **Status**: ✅ Fully Supported
+    
+    ```bash
+    specify init my-project --ai codex
+    ```
+  </Card>
+  
+  <Card title="Amazon Q Developer CLI" icon="aws" href="https://aws.amazon.com/developer/learning/q-developer-cli/">
+    **AWS Amazon Q Developer**
+    
+    - **CLI Tool**: `q`
+    - **Directory**: `.amazonq/prompts/`
+    - **Format**: Markdown (.md)
+    - **Status**: ⚠️ Partial Support
+    - **Note**: Does not support custom arguments for slash commands ([issue #3064](https://github.com/aws/amazon-q-developer-cli/issues/3064))
+    
+    ```bash
+    specify init my-project --ai q
+    ```
+  </Card>
+  
+  <Card title="Amp" icon="bolt" href="https://ampcode.com/manual#install">
+    **Amp Code Assistant**
+    
+    - **CLI Tool**: `amp`
+    - **Directory**: `.agents/commands/`
+    - **Format**: Markdown (.md)
+    - **Status**: ✅ Fully Supported
+    
+    ```bash
+    specify init my-project --ai amp
+    ```
+  </Card>
+  
+  <Card title="SHAI" icon="cloud" href="https://github.com/ovh/shai">
+    **OVHcloud's SHAI**
+    
+    - **CLI Tool**: `shai`
+    - **Directory**: `.shai/commands/`
+    - **Format**: Markdown (.md)
+    - **Status**: ✅ Fully Supported
+    
+    ```bash
+    specify init my-project --ai shai
+    ```
+  </Card>
+  
+  <Card title="CodeBuddy CLI" icon="user-robot" href="https://www.codebuddy.ai/cli">
+    **CodeBuddy Assistant**
+    
+    - **CLI Tool**: `codebuddy`
+    - **Directory**: `.codebuddy/commands/`
+    - **Format**: Markdown (.md)
+    - **Status**: ✅ Fully Supported
+    
+    ```bash
+    specify init my-project --ai codebuddy
+    ```
+  </Card>
+  
+  <Card title="Qoder CLI" icon="code-branch" href="https://qoder.com/cli">
+    **Qoder Code Assistant**
+    
+    - **CLI Tool**: `qodercli`
+    - **Directory**: `.qoder/commands/`
+    - **Format**: Markdown (.md)
+    - **Status**: ✅ Fully Supported
+    
+    ```bash
+    specify init my-project --ai qodercli
+    ```
+  </Card>
+  
+  <Card title="Qwen Code" icon="comments" href="https://github.com/QwenLM/qwen-code">
+    **Alibaba's Qwen Code**
+    
+    - **CLI Tool**: `qwen`
+    - **Directory**: `.qwen/commands/`
+    - **Format**: TOML (.toml)
+    - **Status**: ✅ Fully Supported
+    
+    ```bash
+    specify init my-project --ai qwen
+    ```
+  </Card>
+</CardGroup>
+
+## IDE-Based Agents
+
+These agents are built into integrated development environments and don't require separate CLI installation.
+
+<CardGroup cols={2}>
+  <Card title="GitHub Copilot" icon="github" href="https://code.visualstudio.com/">
+    **GitHub Copilot in VS Code**
+    
+    - **CLI Tool**: N/A (IDE-based)
+    - **Directory**: `.github/agents/`
+    - **Format**: Markdown (.agent.md) with `mode` field
+    - **Status**: ✅ Fully Supported
+    
+    ```bash
+    specify init my-project --ai copilot
+    ```
+  </Card>
+  
+  <Card title="Cursor" icon="arrow-pointer" href="https://cursor.sh/">
+    **Cursor Editor**
+    
+    - **CLI Tool**: `cursor-agent` (optional)
+    - **Directory**: `.cursor/commands/`
+    - **Format**: Markdown (.md)
+    - **Status**: ✅ Fully Supported
+    
+    ```bash
+    specify init my-project --ai cursor-agent
+    ```
+  </Card>
+  
+  <Card title="Windsurf" icon="wind" href="https://windsurf.com/">
+    **Windsurf IDE**
+    
+    - **CLI Tool**: N/A (IDE-based)
+    - **Directory**: `.windsurf/workflows/`
+    - **Format**: Markdown (.md)
+    - **Status**: ✅ Fully Supported
+    
+    ```bash
+    specify init my-project --ai windsurf
+    ```
+  </Card>
+  
+  <Card title="Kilo Code" icon="k" href="https://github.com/Kilo-Org/kilocode">
+    **Kilo Code IDE**
+    
+    - **CLI Tool**: N/A (IDE-based)
+    - **Directory**: `.kilocode/workflows/`
+    - **Format**: Markdown (.md)
+    - **Status**: ✅ Fully Supported
+    
+    ```bash
+    specify init my-project --ai kilocode
+    ```
+  </Card>
+  
+  <Card title="Roo Code" icon="kangaroo" href="https://roocode.com/">
+    **Roo Code Assistant**
+    
+    - **CLI Tool**: N/A (IDE-based)
+    - **Directory**: `.roo/commands/`
+    - **Format**: Markdown (.md)
+    - **Status**: ✅ Fully Supported
+    
+    ```bash
+    specify init my-project --ai roo
+    ```
+  </Card>
+  
+  <Card title="IBM Bob" icon="cube" href="https://www.ibm.com/products/bob">
+    **IBM Bob Assistant**
+    
+    - **CLI Tool**: N/A (IDE-based)
+    - **Directory**: `.bob/commands/`
+    - **Format**: Markdown (.md)
+    - **Status**: ✅ Fully Supported
+    - **Note**: IDE-based agent with slash command support
+    
+    ```bash
+    specify init my-project --ai bob
+    ```
+  </Card>
+  
+  <Card title="Antigravity" icon="rocket" href="https://agy.ai/">
+    **Antigravity (agy)**
+    
+    - **CLI Tool**: N/A (IDE-based)
+    - **Directory**: `.agent/workflows/`
+    - **Format**: Markdown (.md)
+    - **Status**: ✅ Fully Supported
+    
+    ```bash
+    specify init my-project --ai agy
+    ```
+  </Card>
+</CardGroup>
+
+## Generic Agent Support
+
+Bring your own agent by specifying a custom commands directory.
+
+<Card title="Generic / Custom Agent" icon="puzzle-piece">
+  **Custom AI Agent Integration**
+  
+  - **CLI Tool**: N/A (user-provided)
+  - **Directory**: User-specified via `--ai-commands-dir`
+  - **Format**: Markdown (.md)
+  - **Status**: ✅ Supported
+  - **Use Case**: For agents not officially supported or custom agent implementations
+  
+  ```bash
+  specify init my-project --ai generic --ai-commands-dir .myagent/commands/
+  ```
+  
+  <Info>
+  The generic option creates standard Markdown command files in your specified directory. Ensure your agent can discover and execute commands from that location.
+  </Info>
+</Card>
+
+## Available Slash Commands
+
+All agents receive these standardized slash commands when initialized:
+
+### Core Workflow Commands
+
+| Command | Description | When to Use |
+|---------|-------------|-------------|
+| `/speckit.constitution` | Create/update project principles | At project start to establish guidelines |
+| `/speckit.specify` | Define feature requirements | For each new feature specification |
+| `/speckit.plan` | Create technical implementation plans | After spec is clarified and approved |
+| `/speckit.tasks` | Generate task breakdowns | Before implementation to plan work |
+| `/speckit.implement` | Execute all tasks systematically | To build the feature per the plan |
+
+### Quality & Validation Commands
+
+| Command | Description | When to Use |
+|---------|-------------|-------------|
+| `/speckit.clarify` | Structured requirement clarification | Before planning to resolve ambiguities |
+| `/speckit.analyze` | Cross-artifact consistency analysis | After tasks, before implementation |
+| `/speckit.checklist` | Generate quality checklists | To validate requirement completeness |
+| `/speckit.taskstoissues` | Convert tasks to GitHub issues | For project management tracking |
+
+## Installation Quick Reference
+
+<Tabs>
+  <Tab title="Claude Code">
+    ```bash
+    # Install Claude Code CLI
+    # Visit: https://docs.anthropic.com/en/docs/claude-code/setup
+    
+    # Initialize project
+    specify init my-project --ai claude
+    
+    # With agent skills
+    specify init my-project --ai claude --ai-skills
+    ```
+  </Tab>
+  
+  <Tab title="Gemini CLI">
+    ```bash
+    # Install Gemini CLI
+    # Visit: https://github.com/google-gemini/gemini-cli
+    
+    # Initialize project
+    specify init my-project --ai gemini
+    
+    # With agent skills
+    specify init my-project --ai gemini --ai-skills
+    ```
+  </Tab>
+  
+  <Tab title="GitHub Copilot">
+    ```bash
+    # Install GitHub Copilot extension in VS Code
+    # Visit: https://marketplace.visualstudio.com/items?itemName=GitHub.copilot
+    
+    # Initialize project
+    specify init my-project --ai copilot
+    
+    # With PowerShell scripts (Windows)
+    specify init my-project --ai copilot --script ps
+    ```
+  </Tab>
+  
+  <Tab title="Cursor">
+    ```bash
+    # Install Cursor
+    # Visit: https://cursor.sh/
+    
+    # Initialize project
+    specify init my-project --ai cursor-agent
+    
+    # With agent skills
+    specify init my-project --ai cursor-agent --ai-skills
+    ```
+  </Tab>
+  
+  <Tab title="opencode">
+    ```bash
+    # Install opencode
+    # Visit: https://opencode.ai
+    
+    # Initialize project
+    specify init my-project --ai opencode
+    
+    # With agent skills
+    specify init my-project --ai opencode --ai-skills
+    ```
+  </Tab>
+  
+  <Tab title="Generic">
+    ```bash
+    # Use with any custom agent
+    specify init my-project --ai generic --ai-commands-dir .myagent/commands/
+    
+    # Commands will be created in .myagent/commands/ as Markdown files
+    ```
+  </Tab>
+</Tabs>
+
+## Checking Installed Tools
+
+Verify which AI agent tools are installed on your system:
+
+```bash
+specify check
+```
+
+This command checks for:
+- Git (required)
+- Claude Code (`claude`)
+- Gemini CLI (`gemini`)
+- VS Code (`code` or `code-insiders`)
+- Cursor (`cursor-agent`)
+- Qwen Code (`qwen`)
+- opencode (`opencode`)
+- Codex CLI (`codex`)
+- SHAI (`shai`)
+- Qoder CLI (`qodercli`)
+- And other supported CLI tools
+
+<Warning>
+Some agents are IDE-based and won't appear in the tool check. This is normal for agents like GitHub Copilot, Windsurf, IBM Bob, and Kilo Code.
+</Warning>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Configuration Guide" icon="gear" href="/agents/configuration">
+    Learn how to configure and customize agent integration for your project
+  </Card>
+  
+  <Card title="Agent Overview" icon="info" href="/agents/overview">
+    Understand the concepts behind agent integration and the spec-driven workflow
+  </Card>
+</CardGroup>

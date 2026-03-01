@@ -1,0 +1,276 @@
+---
+title: 'The SDD Workflow'
+description: 'A step-by-step guide to practicing Spec-Driven Development, from initial idea to production code.'
+---
+
+## Overview
+
+The SDD workflow transforms vague ideas into working systems through a structured, iterative process. Each step builds upon the previous one, creating a tight feedback loop between intent, specification, and implementation.
+
+<Info>
+Unlike traditional development where specs are written once and forgotten, SDD treats specifications as **living artifacts** that continuously evolve alongside your understanding of the problem.
+</Info>
+
+## The Complete Workflow
+
+<Steps>
+  <Step title="Establish Project Principles">
+    Create your project's governing principles using `/speckit.constitution`. These immutable principles guide all subsequent development decisions.
+    
+    ```bash
+    /speckit.constitution Create principles focused on code quality, 
+    testing standards, user experience consistency, and performance requirements
+    ```
+    
+    This creates `.specify/memory/constitution.md` with your architectural DNA—principles that shape how specifications become code.
+  </Step>
+
+  <Step title="Capture the Idea">
+    The workflow begins with an idea—often vague and incomplete. Through iterative dialogue with AI, this idea becomes a comprehensive PRD using `/speckit.specify`.
+    
+    <Note>
+    Focus on the **what** and **why**, not the tech stack. Describe user needs, business goals, and acceptance criteria.
+    </Note>
+    
+    ```bash
+    /speckit.specify Build an application that helps organize photos in 
+    separate albums grouped by date, with drag-and-drop reorganization
+    ```
+    
+    **What happens:**
+    - AI asks clarifying questions
+    - Identifies edge cases
+    - Helps define precise acceptance criteria
+    - Creates a feature branch (e.g., `001-photo-albums`)
+    - Generates `specs/001-photo-albums/spec.md`
+    
+    What might take days of meetings in traditional development happens in hours of focused specification work.
+  </Step>
+
+  <Step title="Clarify Requirements (Recommended)">
+    Before creating technical plans, use `/speckit.clarify` to address underspecified areas through structured questioning.
+    
+    ```bash
+    /speckit.clarify
+    ```
+    
+    This structured workflow:
+    - Asks sequential, coverage-based questions
+    - Records answers in a Clarifications section
+    - Reduces rework downstream
+    - Ensures all stakeholders have shared understanding
+    
+    <Info>
+    Run this **before** `/speckit.plan` to avoid rebuilding technical plans when requirements change.
+    </Info>
+  </Step>
+
+  <Step title="Research and Context Gathering">
+    Throughout the specification process, research agents gather critical context:
+    
+    - Library compatibility investigations
+    - Performance benchmarks
+    - Security implications
+    - Organizational constraints (database standards, auth requirements, deployment policies)
+    
+    This research happens automatically during `/speckit.plan` and is documented in `research.md`.
+  </Step>
+
+  <Step title="Generate Implementation Plan">
+    Use `/speckit.plan` to translate business requirements into technical architecture.
+    
+    ```bash
+    /speckit.plan Use Vite with minimal libraries. Vanilla HTML, CSS, 
+    and JavaScript. Images stored locally, metadata in SQLite database.
+    ```
+    
+    **AI generates:**
+    - `plan.md` - Technical architecture and implementation phases
+    - `research.md` - Technology choices with documented rationale
+    - `data-model.md` - Entity definitions and relationships
+    - `contracts/` - API specifications and interfaces
+    - `quickstart.md` - Key validation scenarios
+    
+    Every technology choice has documented rationale. Every architectural decision traces back to specific requirements.
+  </Step>
+
+  <Step title="Validate Consistency">
+    Use `/speckit.analyze` to cross-check artifacts for consistency, coverage, and alignment.
+    
+    ```bash
+    /speckit.analyze
+    ```
+    
+    AI analyzes specifications for:
+    - Ambiguity and contradictions
+    - Gaps in requirements coverage
+    - Misalignment between spec and plan
+    - Missing acceptance criteria
+    
+    <Note>
+    This isn't a one-time gate—it's an ongoing refinement that continuously improves quality.
+    </Note>
+  </Step>
+
+  <Step title="Break Down Into Tasks">
+    Use `/speckit.tasks` to create an actionable task list from your implementation plan.
+    
+    ```bash
+    /speckit.tasks
+    ```
+    
+    **Generates `tasks.md` with:**
+    - Tasks organized by user story
+    - Dependency management (models → services → endpoints)
+    - Parallel execution markers `[P]`
+    - Exact file paths for implementation
+    - Test-driven development structure
+    - Checkpoint validation for each phase
+  </Step>
+
+  <Step title="Execute Implementation">
+    Use `/speckit.implement` to execute all tasks and build your feature.
+    
+    ```bash
+    /speckit.implement
+    ```
+    
+    Code generation begins with the implementation plan as the guide:
+    - Domain concepts become data models
+    - User stories become API endpoints
+    - Acceptance scenarios become tests
+    - Tasks execute in correct order respecting dependencies
+    
+    <Info>
+    Implementation and testing merge through specification—test scenarios aren't written after code, they're part of the specification that generates both.
+    </Info>
+  </Step>
+
+  <Step title="Continuous Feedback Loop">
+    The feedback loop extends beyond initial development:
+    
+    - Production metrics inform specification refinement
+    - Incidents trigger spec updates for next regeneration
+    - Performance bottlenecks become non-functional requirements
+    - Security vulnerabilities become constraints affecting all future generations
+    
+    This iterative dance between specification, implementation, and operational reality is where true understanding emerges.
+  </Step>
+</Steps>
+
+## Workflow Characteristics
+
+### Team Process
+
+SDD supports collaborative development:
+
+<CardGroup cols={2}>
+  <Card title="Version Control" icon="code-branch">
+    Team-reviewed specifications are expressed and versioned, created in branches, and merged like code.
+  </Card>
+  
+  <Card title="Living Documentation" icon="book-open">
+    When a product manager updates acceptance criteria, implementation plans automatically flag affected technical decisions.
+  </Card>
+  
+  <Card title="Continuous Evolution" icon="arrows-rotate">
+    When an architect discovers a better pattern, the PRD updates to reflect new possibilities.
+  </Card>
+  
+  <Card title="Shared Understanding" icon="users">
+    Specifications become the common language between product, design, and engineering.
+  </Card>
+</CardGroup>
+
+### Early Generation
+
+Code generation begins as soon as specifications and implementation plans are stable enough, but they **do not have to be complete**.
+
+<Accordion title="Why generate early?">
+  Early generations might be exploratory—testing whether the specification makes sense in practice. This validates assumptions before investing in complete specifications.
+  
+  Benefits:
+  - Discover specification gaps through concrete implementation
+  - Validate technical feasibility early
+  - Get working prototypes for stakeholder feedback
+  - Identify missing edge cases in actual usage
+</Accordion>
+
+## SDLC Transformation
+
+SDD transforms the traditional Software Development Lifecycle:
+
+| Traditional SDLC | Spec-Driven Development |
+|-----------------|------------------------|
+| Requirements → discrete phase | Requirements → continuous activity |
+| Design → separate from coding | Design → generates implementation |
+| Testing → after implementation | Testing → part of specification |
+| Maintenance → manual updates | Maintenance → specification evolution |
+| Change → disruptive | Change → systematic regeneration |
+
+<Note>
+Requirements and design become **continuous activities** rather than discrete phases that happen once and are forgotten.
+</Note>
+
+## Time Comparison
+
+### Traditional Approach
+
+```text
+1. Write PRD (2-3 hours)
+2. Create design documents (2-3 hours)
+3. Set up project structure (30 minutes)
+4. Write technical specifications (3-4 hours)
+5. Create test plans (2 hours)
+Total: ~12 hours of documentation work
+```
+
+### SDD Approach
+
+```bash
+# 5 minutes - Create specification
+/speckit.specify [describe feature]
+
+# 5 minutes - Generate implementation plan  
+/speckit.plan [tech stack choices]
+
+# 5 minutes - Generate task breakdown
+/speckit.tasks
+
+Total: ~15 minutes to comprehensive documentation
+```
+
+In 15 minutes, you have:
+- Complete feature specification with user stories
+- Detailed implementation plan with technology choices
+- API contracts and data models
+- Comprehensive test scenarios
+- All documents versioned in a feature branch
+
+## Optional Quality Commands
+
+Enhance your workflow with additional validation:
+
+<CardGroup cols={2}>
+  <Card title="/speckit.analyze" icon="magnifying-glass-chart">
+    Cross-artifact consistency and coverage analysis. Run after `/speckit.tasks`, before `/speckit.implement`.
+  </Card>
+  
+  <Card title="/speckit.checklist" icon="clipboard-check">
+    Generate custom quality checklists that validate requirements completeness, clarity, and consistency—like "unit tests for English."
+  </Card>
+</CardGroup>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Understand the Philosophy" icon="lightbulb" href="/concepts/philosophy">
+    Explore the core principles and design decisions behind SDD
+  </Card>
+  
+  <Card title="Get Started" icon="rocket" href="/introduction">
+    Begin practicing Spec-Driven Development in your projects
+  </Card>
+</CardGroup>

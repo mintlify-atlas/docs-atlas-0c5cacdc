@@ -1,0 +1,686 @@
+---
+title: Troubleshooting
+description: Common issues and solutions for Spec Kit
+---
+
+This guide covers common issues you might encounter when using Spec Kit and their solutions.
+
+## Installation Issues
+
+### Specify CLI Not Found
+
+<Accordion title="Error: command not found: specify">
+**Symptoms**: After installing with `uv tool install`, `specify` command not found.
+
+**Solutions**:
+
+1. **Check if installed**:
+   ```bash
+   uv tool list
+   ```
+
+2. **Verify PATH includes uv tools**:
+   ```bash
+   echo $PATH | grep -o "[^:]*uv[^:]*"
+   ```
+
+3. **Add to PATH** (if missing):
+   ```bash
+   # For bash/zsh
+   export PATH="$HOME/.local/bin:$PATH"
+   
+   # Add to ~/.bashrc or ~/.zshrc for persistence
+   echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+   ```
+
+4. **Reinstall with force**:
+   ```bash
+   uv tool install specify-cli --force --from git+https://github.com/github/spec-kit.git
+   ```
+</Accordion>
+
+### UV Not Installed
+
+<Accordion title="Error: command not found: uv">
+**Solution**: Install uv package manager:
+
+```bash
+# Linux/macOS
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Windows (PowerShell)
+powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+
+# Alternative: Using pip
+pip install uv
+```
+
+Then retry installing Specify CLI.
+</Accordion>
+
+### Python Version Issues
+
+<Accordion title="Error: Python 3.11+ required">
+**Symptoms**: Error during installation about Python version.
+
+**Solution**: Install Python 3.11 or higher:
+
+```bash
+# Check current version
+python --version
+
+# Linux (apt)
+sudo apt update
+sudo apt install python3.11
+
+# macOS (Homebrew)
+brew install python@3.11
+
+# Or use uv's Python management
+uv python install 3.11
+```
+</Accordion>
+
+## Git Authentication Issues
+
+### Git Credential Manager (Linux)
+
+<Accordion title="Error: Git authentication failing on Linux">
+**Symptoms**: Can't push to GitHub, authentication errors.
+
+**Solution**: Install Git Credential Manager:
+
+```bash
+#!/usr/bin/env bash
+set -e
+
+echo "Downloading Git Credential Manager v2.6.1..."
+wget https://github.com/git-ecosystem/git-credential-manager/releases/download/v2.6.1/gcm-linux_amd64.2.6.1.deb
+
+echo "Installing Git Credential Manager..."
+sudo dpkg -i gcm-linux_amd64.2.6.1.deb
+
+echo "Configuring Git to use GCM..."
+git config --global credential.helper manager
+
+echo "Cleaning up..."
+rm gcm-linux_amd64.2.6.1.deb
+
+echo "✓ Git Credential Manager installed"
+```
+
+Then retry git operations.
+</Accordion>
+
+### SSH Key Issues
+
+<Accordion title="Error: Permission denied (publickey)">
+**Symptoms**: Can't clone/push using SSH.
+
+**Solution**: Set up SSH keys:
+
+```bash
+# Generate SSH key
+ssh-keygen -t ed25519 -C "your_email@example.com"
+
+# Start SSH agent
+eval "$(ssh-agent -s)"
+
+# Add key to agent
+ssh-add ~/.ssh/id_ed25519
+
+# Copy public key
+cat ~/.ssh/id_ed25519.pub
+
+# Add to GitHub: Settings → SSH and GPG keys → New SSH key
+```
+
+Verify connection:
+```bash
+ssh -T git@github.com
+```
+</Accordion>
+
+## Branch and Feature Issues
+
+### Not on Feature Branch
+
+<Accordion title="Error: Not on a feature branch (###-name format)">
+**Symptoms**: Commands fail because you're on `main` or other branch.
+
+**Solution**:
+
+1. **Create new feature**:
+   ```bash
+   # In your AI agent
+   /speckit.specify Build user authentication system
+   ```
+
+2. **Or switch to existing feature**:
+   ```bash
+   git checkout 001-user-auth
+   ```
+
+3. **For non-Git repos**, set environment variable:
+   ```bash
+   export SPECIFY_FEATURE="001-user-auth"
+   ```
+</Accordion>
+
+### Feature Directory Not Found
+
+<Accordion title="Error: Feature directory not found: specs/001-feature">
+**Symptoms**: Scripts can't find feature directory.
+
+**Solution**:
+
+1. **Verify branch matches directory**:
+   ```bash
+   # Check current branch
+   git branch
+   
+   # List feature directories
+   ls specs/
+   ```
+
+2. **Create missing directory**:
+   ```bash
+   mkdir -p specs/001-feature
+   ```
+
+3. **Or create new feature properly**:
+   ```bash
+   # In AI agent
+   /speckit.specify Feature description
+   ```
+</Accordion>
+
+### Branch Name Too Long
+
+<Accordion title="Warning: Branch name exceeded GitHub's 244-byte limit">
+**Symptoms**: Branch name automatically truncated.
+
+**Solution**: This is normal - the script automatically handles it. The warning is informational.
+
+To avoid truncation, use shorter feature descriptions or custom short names:
+
+```bash
+# Use --short-name option
+./.specify/scripts/bash/create-new-feature.sh \
+  "Very long feature description here" \
+  --short-name "short-name"
+```
+</Accordion>
+
+## Missing Prerequisites
+
+### Plan.md Not Found
+
+<Accordion title="Error: plan.md not found">
+**Symptoms**: `/speckit.tasks` or `/speckit.implement` fails.
+
+**Solution**: Create implementation plan first:
+
+```bash
+# In AI agent
+/speckit.plan Use Python with FastAPI, PostgreSQL database
+```
+
+Verify plan exists:
+```bash
+ls specs/001-feature/plan.md
+```
+</Accordion>
+
+### Tasks.md Not Found
+
+<Accordion title="Error: tasks.md not found">
+**Symptoms**: `/speckit.implement` fails.
+
+**Solution**: Generate task breakdown first:
+
+```bash
+# In AI agent
+/speckit.tasks
+```
+
+Verify tasks exist:
+```bash
+ls specs/001-feature/tasks.md
+```
+</Accordion>
+
+### Spec.md Not Found
+
+<Accordion title="Error: spec.md not found">
+**Symptoms**: `/speckit.plan` can't find specification.
+
+**Solution**: Create specification first:
+
+```bash
+# In AI agent
+/speckit.specify Build a photo album application
+```
+
+Verify spec exists:
+```bash
+ls specs/001-feature/spec.md
+```
+</Accordion>
+
+## Agent-Specific Issues
+
+### Commands Not Appearing
+
+<Accordion title="Slash commands not showing in AI agent">
+**Symptoms**: `/speckit.*` commands not available in agent.
+
+**Solution**:
+
+1. **Verify commands installed**:
+   ```bash
+   # For Claude
+   ls .claude/commands/speckit.*.md
+   
+   # For opencode
+   ls .opencode/command/speckit.*.md
+   
+   # For Gemini
+   ls .gemini/commands/speckit.*.toml
+   ```
+
+2. **Restart AI agent**: Close and reopen the agent
+
+3. **Reinstall Specify**:
+   ```bash
+   # In project directory
+   specify init . --force --ai claude
+   ```
+
+4. **Check agent running in correct directory**:
+   ```bash
+   pwd  # Should be in project root with .specify/ folder
+   ```
+</Accordion>
+
+### Agent Can't Find Files
+
+<Accordion title="Agent says it can't find spec files">
+**Symptoms**: Agent reports file not found errors.
+
+**Solution**:
+
+1. **Verify files exist**:
+   ```bash
+   ls -la specs/001-feature/
+   ```
+
+2. **Update agent context**:
+   ```bash
+   # Bash
+   ./.specify/scripts/bash/update-agent-context.sh
+   
+   # PowerShell
+   .specify\scripts\powershell\update-agent-context.ps1
+   ```
+
+3. **Check agent working directory**:
+   - Agent should be started from project root
+   - Not from `.specify/` or `specs/` subdirectory
+</Accordion>
+
+### TOML vs Markdown Format
+
+<Accordion title="Error: Invalid command format for agent">
+**Symptoms**: Commands work in some agents but not others.
+
+**Solution**: Different agents use different formats:
+
+- **Markdown** (.md): Claude, Cursor, opencode, Windsurf, Amp, SHAI, Amazon Q
+- **TOML** (.toml): Gemini, Qwen
+
+Reinstall with correct agent:
+```bash
+specify init . --force --ai gemini  # For TOML
+specify init . --force --ai claude  # For Markdown
+```
+</Accordion>
+
+## Extension Issues
+
+### Extension Not Found in Catalog
+
+<Accordion title="Error: Extension 'jira' not found in catalog">
+**Symptoms**: Can't install extension by name.
+
+**Solution**:
+
+1. **Check catalog URL**:
+   ```bash
+   echo $SPECKIT_CATALOG_URL
+   ```
+
+2. **Use community catalog** or install from URL:
+   ```bash
+   # Install from URL directly
+   specify extension add --from https://github.com/org/spec-kit-ext/archive/refs/tags/v1.0.0.zip
+   ```
+
+3. **Populate your catalog**: Copy extension entry from `catalog.community.json` to your organization's `catalog.json`
+</Accordion>
+
+### Extension Configuration Missing
+
+<Accordion title="Error: Extension configuration not found">
+**Symptoms**: Extension commands fail due to missing config.
+
+**Solution**:
+
+1. **Create config from template**:
+   ```bash
+   cp .specify/extensions/jira/jira-config.template.yml \
+      .specify/extensions/jira/jira-config.yml
+   ```
+
+2. **Edit configuration**:
+   ```bash
+   vim .specify/extensions/jira/jira-config.yml
+   ```
+
+3. **Or use environment variables**:
+   ```bash
+   export SPECKIT_JIRA_PROJECT_KEY="MYPROJECT"
+   ```
+</Accordion>
+
+### Extension Version Incompatible
+
+<Accordion title="Error: Extension requires spec-kit >=0.2.0">
+**Symptoms**: Can't install extension due to version mismatch.
+
+**Solution**:
+
+1. **Upgrade Spec Kit**:
+   ```bash
+   uv tool upgrade specify-cli
+   ```
+
+2. **Or install older extension version**:
+   ```bash
+   specify extension add --from https://github.com/org/ext/archive/v1.0.0.zip
+   ```
+</Accordion>
+
+## Script Issues
+
+### Script Not Executable
+
+<Accordion title="Error: Permission denied (Bash)">
+**Symptoms**: Can't run bash scripts.
+
+**Solution**:
+
+```bash
+# Make scripts executable
+chmod +x .specify/scripts/bash/*.sh
+
+# Or run with bash
+bash .specify/scripts/bash/create-new-feature.sh
+```
+</Accordion>
+
+### Execution Policy (PowerShell)
+
+<Accordion title="Error: Running scripts is disabled (PowerShell)">
+**Symptoms**: Can't run PowerShell scripts.
+
+**Solution**:
+
+```powershell
+# Check current policy
+Get-ExecutionPolicy
+
+# Allow local scripts (recommended)
+Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+# Or bypass for single script
+powershell -ExecutionPolicy Bypass -File .specify\scripts\powershell\create-new-feature.ps1
+```
+</Accordion>
+
+### Script Output Encoding Issues
+
+<Accordion title="Error: Strange characters in output">
+**Symptoms**: Unicode characters appear as boxes or question marks.
+
+**Solution**:
+
+```bash
+# Bash: Ensure UTF-8 locale
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+```
+
+```powershell
+# PowerShell: Set output encoding
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+```
+</Accordion>
+
+## Template Issues
+
+### Template Not Found
+
+<Accordion title="Error: Template not found at .specify/templates/">
+**Symptoms**: Commands can't find template files.
+
+**Solution**:
+
+1. **Verify template directory exists**:
+   ```bash
+   ls .specify/templates/
+   ```
+
+2. **Reinstall templates**:
+   ```bash
+   specify init . --force --ai claude
+   ```
+
+3. **Or copy templates manually** from [Spec Kit repository](https://github.com/github/spec-kit/tree/main/templates)
+</Accordion>
+
+### Template Variables Not Replaced
+
+<Accordion title="Placeholder text like [FEATURE NAME] remains in files">
+**Symptoms**: Template variables not substituted.
+
+**Solution**: This is expected - the AI agent is responsible for filling in placeholders.
+
+1. **Review generated file**: Check if AI agent filled in values
+2. **Manually replace** remaining placeholders
+3. **Or regenerate** with more specific instructions:
+   ```bash
+   # Be more explicit in commands
+   /speckit.specify Build a user authentication system with email/password login
+   ```
+</Accordion>
+
+## Performance Issues
+
+### Slow Command Execution
+
+<Accordion title="Commands taking too long to complete">
+**Possible causes and solutions**:
+
+1. **Large codebase**: AI agent scanning many files
+   - Add `.gitignore` entries for node_modules, build dirs
+   - Use `.aiderignore` or agent-specific ignore files
+
+2. **Network issues**: Fetching git refs or catalogs
+   - Check internet connection
+   - Use local catalog for extensions
+
+3. **Too many extensions**: Loading many extensions
+   - Disable unused extensions: `specify extension disable <name>`
+   - Only install what you need
+</Accordion>
+
+### Agent Out of Memory
+
+<Accordion title="AI agent crashes or runs out of memory">
+**Solutions**:
+
+1. **Split large features** into smaller ones
+2. **Reduce context** by focusing on specific files
+3. **Close and restart** agent between major operations
+4. **Increase system memory** if possible
+</Accordion>
+
+## Non-Git Workflows
+
+### SPECIFY_FEATURE Not Persisting
+
+<Accordion title="Error: Feature not detected after closing terminal">
+**Symptoms**: Must set `SPECIFY_FEATURE` every time.
+
+**Solution**:
+
+1. **Add to shell profile**:
+   ```bash
+   # In ~/.bashrc or ~/.zshrc
+   export SPECIFY_FEATURE="001-current-feature"
+   ```
+
+2. **Or use direnv** for automatic switching:
+   ```bash
+   # Install direnv
+   # Create .envrc in project
+   echo 'export SPECIFY_FEATURE="001-feature"' > .envrc
+   direnv allow
+   ```
+
+3. **Or always specify** in commands:
+   ```bash
+   SPECIFY_FEATURE="001-feature" ./script.sh
+   ```
+</Accordion>
+
+### No Git, Scripts Fail
+
+<Accordion title="Warning: Git repository not detected">
+**Symptoms**: Scripts warn about Git not being available.
+
+**Solution**: This is informational - scripts automatically fall back to non-Git mode.
+
+- Branch creation is skipped
+- Feature detection uses `SPECIFY_FEATURE` or directory scan
+- All other functionality works normally
+
+To suppress warnings:
+```bash
+# Set this in your environment
+export SPECIFY_NO_GIT_WARNING=1
+```
+</Accordion>
+
+## Validation Errors
+
+### Checklist Items Not Passing
+
+<Accordion title="Quality checklist validation failing">
+**Symptoms**: `/speckit.checklist` shows unchecked items.
+
+**Solution**:
+
+1. **Review each failed item**: Read why it's failing
+2. **Update artifacts**: Fix issues in spec.md, plan.md, etc.
+3. **Re-run validation**: Have AI agent check again
+
+<Tip>
+Use `/speckit.analyze` for automated consistency checks across artifacts.
+</Tip>
+</Accordion>
+
+### Constitution Violations
+
+<Accordion title="Plan violates constitution principles">
+**Symptoms**: Constitution check shows violations.
+
+**Solution**:
+
+1. **Justify violations** in Complexity Tracking table:
+   - Why the violation is needed
+   - Why simpler alternatives were rejected
+
+2. **Or revise plan** to comply with constitution
+
+3. **Update constitution** if principle is outdated:
+   ```bash
+   /speckit.constitution Update principles to allow [specific case]
+   ```
+</Accordion>
+
+## Getting Help
+
+<Warning>
+If your issue isn't covered here, please open a GitHub issue with:
+- Detailed description of the problem
+- Steps to reproduce
+- Error messages (full text)
+- Environment info (OS, Python version, agent used)
+</Warning>
+
+### Debug Information Collection
+
+```bash
+# Collect debug info
+echo "Spec Kit Version:"
+specify --version
+
+echo "\nPython Version:"
+python --version
+
+echo "\nGit Version:"
+git --version
+
+echo "\nCurrent Branch:"
+git branch --show-current
+
+echo "\nFeature Directory:"
+ls -la specs/
+
+echo "\nInstalled Extensions:"
+specify extension list
+
+echo "\nAgent Command Files:"
+ls -la .claude/commands/ .opencode/command/ .gemini/commands/ 2>/dev/null || echo "No agent command directories found"
+```
+
+### Useful Commands
+
+```bash
+# Check Spec Kit installation
+specify check
+
+# Verify feature structure
+tree .specify/ -L 2
+
+# Test script directly
+bash -x .specify/scripts/bash/check-prerequisites.sh
+
+# View agent context
+cat .claude/CLAUDE.md  # or .opencode/README.md, etc.
+```
+
+## Support Channels
+
+- **GitHub Issues**: [github.com/github/spec-kit/issues](https://github.com/github/spec-kit/issues)
+- **Documentation**: [github.github.io/spec-kit/](https://github.github.io/spec-kit/)
+- **Discussions**: [github.com/github/spec-kit/discussions](https://github.com/github/spec-kit/discussions)
+
+## Related Resources
+
+- [Installation Guide](/getting-started/installation)
+- [CLI Reference](/reference/cli)
+- [Extension User Guide](https://github.com/github/spec-kit/blob/main/extensions/EXTENSION-USER-GUIDE.md)
+- [Script Documentation](/advanced/scripts)

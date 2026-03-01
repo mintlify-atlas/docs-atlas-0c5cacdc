@@ -1,0 +1,319 @@
+---
+title: specify check
+description: Verify installed tools and AI assistant availability
+---
+
+## Overview
+
+The `specify check` command verifies that required tools and AI assistant CLIs are installed and available in your system PATH. Use this command to diagnose environment issues before initializing a project.
+
+## Usage
+
+```bash
+specify check
+```
+
+This command takes no arguments or options.
+
+## What It Checks
+
+### Core Tools
+
+<ParamField path="git" type="tool">
+  **Git version control** — Required for repository initialization unless using `--no-git` with `specify init`.
+  
+  Install: https://git-scm.com/downloads
+</ParamField>
+
+### AI Assistant CLIs
+
+The command checks for all CLI-based AI assistants:
+
+<ParamField path="claude" type="tool">
+  **Claude Code** — Anthropic's Claude Code CLI
+  
+  Special handling: After running `claude migrate-installer`, the CLI is located at `~/.claude/local/claude` instead of in PATH.
+  
+  Install: https://docs.anthropic.com/en/docs/claude-code/setup
+</ParamField>
+
+<ParamField path="gemini" type="tool">
+  **Gemini CLI** — Google's Gemini CLI
+  
+  Install: https://github.com/google-gemini/gemini-cli
+</ParamField>
+
+<ParamField path="cursor-agent" type="tool">
+  **Cursor** — Cursor CLI
+  
+  Note: The CLI tool is `cursor-agent`, not `cursor`.
+</ParamField>
+
+<ParamField path="qwen" type="tool">
+  **Qwen Code** — Alibaba's Qwen Code CLI
+  
+  Install: https://github.com/QwenLM/qwen-code
+</ParamField>
+
+<ParamField path="opencode" type="tool">
+  **opencode** — opencode CLI
+  
+  Install: https://opencode.ai
+</ParamField>
+
+<ParamField path="q" type="tool">
+  **Amazon Q Developer CLI** — Amazon Q Developer
+  
+  Install: https://aws.amazon.com/developer/learning/q-developer-cli/
+</ParamField>
+
+<ParamField path="amp" type="tool">
+  **Amp** — Amp CLI
+  
+  Install: https://ampcode.com/manual#install
+</ParamField>
+
+<ParamField path="shai" type="tool">
+  **SHAI** — SHAI CLI
+  
+  Install: https://github.com/ovh/shai
+</ParamField>
+
+<ParamField path="auggie" type="tool">
+  **Auggie CLI** — Auggie CLI
+  
+  Install: https://docs.augmentcode.com/cli/setup-auggie/install-auggie-cli
+</ParamField>
+
+<ParamField path="codebuddy" type="tool">
+  **CodeBuddy** — CodeBuddy CLI
+  
+  Install: https://www.codebuddy.ai/cli
+</ParamField>
+
+<ParamField path="qodercli" type="tool">
+  **Qoder CLI** — Qoder CLI
+  
+  Install: https://qoder.com/cli
+</ParamField>
+
+<ParamField path="codex" type="tool">
+  **Codex CLI** — Codex CLI
+  
+  Install: https://github.com/openai/codex
+</ParamField>
+
+### IDE-Based Assistants (Informational)
+
+The following assistants are IDE-based and don't require CLI checks:
+
+- **GitHub Copilot** — Built into VS Code and compatible editors
+- **Windsurf** — Windsurf IDE
+- **Kilo Code** — Kilo Code IDE
+- **Roo Code** — Roo Code IDE
+- **IBM Bob** — IBM Bob IDE
+- **Antigravity** — Antigravity IDE
+
+These are marked as "IDE-based, no CLI check" in the output.
+
+### Editor CLIs (Optional)
+
+<ParamField path="code" type="tool">
+  **Visual Studio Code** — VS Code command-line interface
+  
+  Install: https://code.visualstudio.com/
+</ParamField>
+
+<ParamField path="code-insiders" type="tool">
+  **Visual Studio Code Insiders** — VS Code Insiders edition CLI
+  
+  Install: https://code.visualstudio.com/insiders/
+</ParamField>
+
+## Example Output
+
+```bash
+$ specify check
+
+███████╗██████╗ ███████╗ ██████╗██╗███████╗██╗   ██╗
+██╔════╝██╔══██╗██╔════╝██╔════╝██║██╔════╝╚██╗ ██╔╝
+███████╗██████╔╝█████╗  ██║     ██║█████╗   ╚████╔╝ 
+╚════██║██╔═══╝ ██╔══╝  ██║     ██║██╔══╝    ╚██╔╝  
+███████║██║     ███████╗╚██████╗██║██║        ██║   
+╚══════╝╚═╝     ╚══════╝ ╚═════╝╚═╝╚═╝        ╚═╝   
+
+GitHub Spec Kit - Spec-Driven Development Toolkit
+
+Checking for installed tools...
+
+Check Available Tools
+├─ ● Git version control (available)
+├─ ○ GitHub Copilot (IDE-based, no CLI check)
+├─ ● Claude Code (available)
+├─ ○ Gemini CLI (not found)
+├─ ● Cursor (available)
+├─ ○ Qwen Code (not found)
+├─ ● opencode (available)
+├─ ○ Codex CLI (not found)
+├─ ○ Windsurf (IDE-based, no CLI check)
+├─ ○ Kilo Code (IDE-based, no CLI check)
+├─ ○ Auggie CLI (not found)
+├─ ○ CodeBuddy (not found)
+├─ ○ Qoder CLI (not found)
+├─ ○ Roo Code (IDE-based, no CLI check)
+├─ ○ Amazon Q Developer CLI (not found)
+├─ ○ Amp (not found)
+├─ ○ SHAI (not found)
+├─ ○ Antigravity (IDE-based, no CLI check)
+├─ ○ IBM Bob (IDE-based, no CLI check)
+├─ ● Visual Studio Code (available)
+└─ ○ Visual Studio Code Insiders (not found)
+
+Specify CLI is ready to use!
+```
+
+## Status Indicators
+
+The check command uses the following status indicators:
+
+- **● Green** — Tool is available and found in PATH
+- **● Red** — Required tool not found (error)
+- **○ Yellow** — Optional tool not found or IDE-based (skipped)
+- **○ Gray** — Pending check
+
+## Understanding Results
+
+### All Clear
+
+If git and at least one AI assistant CLI are available:
+
+```
+Specify CLI is ready to use!
+```
+
+You're ready to run `specify init`.
+
+### Missing Git
+
+If git is not found:
+
+```
+Specify CLI is ready to use!
+Tip: Install git for repository management
+```
+
+You can still use Specify, but use `--no-git` with `specify init`.
+
+### No AI Assistants Found
+
+If no AI assistant CLIs are available:
+
+```
+Specify CLI is ready to use!
+Tip: Install an AI assistant for the best experience
+```
+
+Consider:
+- Installing a CLI-based assistant from the list above
+- Using an IDE-based assistant (GitHub Copilot, Windsurf, etc.)
+- Using `--ignore-agent-tools` with `specify init`
+
+## When to Run Check
+
+### Before Initialization
+
+Run `check` before creating a new project to ensure tools are available:
+
+```bash
+specify check
+specify init my-project --ai claude
+```
+
+### Troubleshooting
+
+If `specify init` fails with agent detection errors:
+
+```bash
+specify check  # See which tools are missing
+# Install missing tools
+specify init my-project --ai claude
+```
+
+### After Installing Tools
+
+Verify that newly installed tools are in PATH:
+
+```bash
+# Install Claude CLI
+curl -fsSL https://anthropic.com/install.sh | sh
+
+# Verify installation
+specify check
+```
+
+## Common Issues
+
+### Tool Installed But Not Found
+
+If you've installed a tool but `check` doesn't find it:
+
+**Cause**: The tool is not in your PATH.
+
+**Solutions**:
+1. Restart your terminal to reload PATH
+2. Check installation instructions for PATH setup
+3. Verify with: `which <tool-name>` (Unix) or `where <tool-name>` (Windows)
+
+### Claude Migrate-Installer
+
+If you ran `claude migrate-installer`:
+
+**Note**: The Claude CLI is now at `~/.claude/local/claude` instead of in PATH.
+
+`specify check` will find it automatically at this location. See [GitHub Spec Kit issue #123](https://github.com/github/spec-kit/issues/123) for details.
+
+### Multiple Versions Detected
+
+If multiple versions of a tool are installed:
+
+**Behavior**: `check` finds the first one in PATH.
+
+To see which version:
+
+```bash
+which claude      # Unix-like
+where claude      # Windows
+```
+
+## Exit Codes
+
+- **0** — Check completed successfully (tools may or may not be available)
+
+The `check` command always exits with 0, as missing tools are informational rather than errors.
+
+## Related Commands
+
+- [`specify init`](/cli/init) — Initialize a project (requires tools from check)
+- [`specify version`](/cli/commands#version) — Display version information
+
+## Technical Details
+
+### Tool Detection
+
+The command uses `shutil.which()` to search for executables in PATH, which:
+
+- Respects system PATH environment variable
+- Handles platform-specific executable extensions (`.exe` on Windows)
+- Finds the first matching executable
+
+### Special Cases
+
+**Claude CLI**: After `claude migrate-installer`, checks both:
+1. Standard PATH lookup via `shutil.which("claude")`
+2. Specific location at `~/.claude/local/claude`
+
+**Generic Agent**: Not checked (not a real agent to check)
+
+### Performance
+
+Tool checks are fast (typically < 1 second) as they only query the filesystem without executing tools.

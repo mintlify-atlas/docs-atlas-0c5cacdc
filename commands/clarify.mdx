@@ -1,0 +1,495 @@
+---
+title: /speckit.clarify
+description: Resolve specification ambiguities through targeted questions
+---
+
+The `/speckit.clarify` command identifies underspecified areas in your feature specification and asks up to 5 highly targeted questions to eliminate ambiguity.
+
+## Purpose
+
+Reduce implementation risk by:
+- Detecting missing decision points in requirements
+- Asking strategic questions that impact architecture or UX
+- Recording answers directly in the specification
+- Ensuring the spec is implementation-ready
+
+<Note>
+  Clarification should run **after `/speckit.specify`** and **before `/speckit.plan`**. It's optional for well-understood features but critical for complex or novel requirements.
+</Note>
+
+## Usage
+
+```bash
+# Clarify the current feature specification
+/speckit.clarify
+
+# Clarify with context hints
+/speckit.clarify Focus on security and data privacy requirements
+
+# Clarify specific domain
+/speckit.clarify I'm particularly concerned about edge cases and error handling
+```
+
+## How It Works
+
+<Steps>
+  <Step title="Load Prerequisites">
+    Runs prerequisite check script to get:
+    - `FEATURE_DIR`: Current feature directory path
+    - `FEATURE_SPEC`: Path to spec.md file
+    
+    Aborts if spec.md doesn't exist (must run `/speckit.specify` first)
+  </Step>
+  
+  <Step title="Scan for Ambiguities">
+    Performs structured coverage analysis across taxonomy:
+    - Functional scope & behavior
+    - Domain & data model
+    - Interaction & UX flow
+    - Non-functional attributes (performance, security, reliability)
+    - Integration & dependencies
+    - Edge cases & failure handling
+    - Constraints & tradeoffs
+    - Terminology consistency
+    
+    For each category: marks as **Clear**, **Partial**, or **Missing**
+  </Step>
+  
+  <Step title="Prioritize Questions">
+    Generates up to 5 questions based on:
+    - **Impact**: Will the answer change architecture, data modeling, or UX?
+    - **Uncertainty**: Are there multiple reasonable interpretations?
+    - **Risk**: Does ambiguity create downstream rework risk?
+    
+    Uses heuristic: `(Impact × Uncertainty)` to rank candidates
+  </Step>
+  
+  <Step title="Ask Sequentially">
+    Presents **one question at a time**:
+    - Multiple choice with recommended option (based on best practices)
+    - Or short answer with suggested response
+    - User accepts recommendation or provides alternative
+    - After each answer, immediately updates spec.md
+  </Step>
+  
+  <Step title="Integrate Incrementally">
+    After each accepted answer:
+    - Creates `## Clarifications` section (if missing)
+    - Adds `### Session YYYY-MM-DD` subsection
+    - Records `- Q: <question> → A: <answer>`
+    - Updates appropriate spec sections
+    - Saves file immediately (atomic updates)
+  </Step>
+  
+  <Step title="Report Coverage">
+    After all questions (or early termination):
+    - Number of questions asked & answered
+    - Sections touched
+    - Coverage summary by taxonomy category
+    - Recommendation: proceed to `/speckit.plan` or clarify again
+  </Step>
+</Steps>
+
+## Question Format
+
+### Multiple Choice Questions
+
+For decisions with discrete options:
+
+<CodeGroup>
+```text Question with Recommendation
+## Question 1: Data Storage Approach
+
+**Recommended:** Option B - PostgreSQL with normalized schema
+
+Based on the requirement for complex queries and data integrity, a relational database with ACID guarantees is the best choice. PostgreSQL offers excellent performance for the expected scale (< 100k users) while maintaining data consistency.
+
+| Option | Description |
+|--------|-------------|
+| A | Document store (MongoDB) - Flexible schema, simpler queries |
+| B | PostgreSQL with normalized schema - Strong consistency, complex queries |
+| C | SQLite embedded - Simplest deployment, single-user focused |
+| Short | Provide a different short answer (≤5 words) |
+
+You can reply with the option letter (e.g., "A"), accept the recommendation by saying "yes" or "recommended", or provide your own short answer.
+```
+
+```text User Responses
+# Accept recommendation
+User: "yes"
+# Result: Uses Option B (PostgreSQL)
+
+# Choose different option
+User: "C"
+# Result: Uses Option C (SQLite)
+
+# Custom answer
+User: "Redis with persistence"
+# Result: Records custom answer
+```
+</CodeGroup>
+
+### Short Answer Questions
+
+For open-ended decisions:
+
+```text
+## Question 2: Performance Target
+
+**Suggested:** API response time < 200ms (p95)
+
+For a real-time dashboard, sub-200ms response time ensures smooth UX without perceived lag. This aligns with industry standards for interactive web applications.
+
+Format: Short answer (≤5 words). You can accept the suggestion by saying "yes" or "suggested", or provide your own answer.
+```
+
+## Ambiguity Taxonomy
+
+The command scans for gaps in these categories:
+
+### Functional Scope & Behavior
+
+- Core user goals clearly defined?
+- Explicit out-of-scope declarations?
+- User roles/personas differentiated?
+
+### Domain & Data Model
+
+- Entities, attributes, relationships specified?
+- Identity & uniqueness rules clear?
+- Lifecycle/state transitions defined?
+- Data volume/scale assumptions documented?
+
+### Interaction & UX Flow
+
+- Critical user journeys sequenced?
+- Error/empty/loading states described?
+- Accessibility or localization needs?
+
+### Non-Functional Quality Attributes
+
+- **Performance**: Latency, throughput targets
+- **Scalability**: Horizontal/vertical limits
+- **Reliability**: Uptime, recovery expectations
+- **Observability**: Logging, metrics, tracing
+- **Security**: AuthN/Z, data protection, threats
+- **Compliance**: Regulatory constraints
+
+### Integration & Dependencies
+
+- External services/APIs and failure modes
+- Data import/export formats
+- Protocol/versioning assumptions
+
+### Edge Cases & Failure Handling
+
+- Negative scenarios covered?
+- Rate limiting/throttling defined?
+- Conflict resolution (concurrent edits)?
+
+### Constraints & Tradeoffs
+
+- Technical constraints explicit?
+- Tradeoffs or rejected alternatives documented?
+
+### Terminology & Consistency
+
+- Canonical glossary terms established?
+- Synonyms/deprecated terms avoided?
+
+## Real-World Example
+
+<CodeGroup>
+```bash Command
+/speckit.clarify Focus on security and data privacy
+```
+
+```text Console Output
+✓ Loaded feature specification: specs/003-task-api/spec.md
+✓ Performed coverage analysis across 10 categories
+
+Coverage Status:
+  ✓ Clear: Functional Scope, User Journeys, Data Model
+  ⚠ Partial: Security/Privacy, Error Handling, Performance
+  ✗ Missing: Observability, Compliance
+
+Prioritized 5 questions based on impact and your context hint (security).
+
+---
+
+## Question 1: Data Encryption
+
+**Recommended:** Option C - Encrypt at rest and in transit
+
+For a task management system handling potentially sensitive user data, full encryption prevents data exposure from database breaches or network sniffing. The performance overhead is negligible with modern encryption.
+
+| Option | Description |
+|--------|-------------|
+| A | Encrypt in transit only (HTTPS) - Protects network, database vulnerable |
+| B | Encrypt at rest only (database encryption) - Protects storage, network vulnerable |
+| C | Encrypt at rest and in transit - Full protection, industry standard |
+| Short | Provide a different short answer (≤5 words) |
+
+You can reply with the option letter (e.g., "A"), accept the recommendation by saying "yes" or "recommended", or provide your own short answer.
+```
+
+```text User Response
+User: yes
+```
+
+```text After Integration
+✓ Recorded answer: Encrypt at rest and in transit
+✓ Updated spec.md:
+  - Added to Clarifications section
+  - Updated Non-Functional Requirements
+  - Added new requirement: FR-015 (Data Encryption)
+✓ Saved: specs/003-task-api/spec.md
+
+---
+
+## Question 2: Authentication Token Expiration
+
+**Suggested:** 24 hours with refresh capability
+
+Balances security (limited exposure window) with UX (users don't log in constantly). Refresh tokens allow seamless re-authentication for active users.
+
+Format: Short answer (≤5 words). You can accept the suggestion by saying "yes" or "suggested", or provide your own answer.
+```
+
+```text User Response
+User: 1 hour, no refresh
+```
+
+```text After Integration
+✓ Recorded answer: 1 hour, no refresh
+✓ Updated spec.md:
+  - Added to Clarifications section
+  - Updated FR-008 (Session token expiration)
+✓ Saved: specs/003-task-api/spec.md
+
+[... continues with remaining 3 questions ...]
+```
+
+```text Final Report
+✓ Clarification complete!
+
+Questions asked: 5
+Questions answered: 5
+Sections updated:
+  - Non-Functional Requirements
+  - Functional Requirements (FR-008, FR-015, FR-016)
+  - Edge Cases
+  - Security section (new)
+
+Coverage Summary:
+  ✓ Resolved: Security/Privacy, Error Handling (was Partial)
+  ✓ Resolved: Compliance (was Missing)
+  ⚠ Deferred: Observability (low impact, better suited for planning phase)
+  ✓ Clear: All other categories
+
+All critical ambiguities resolved. Ready to proceed to /speckit.plan.
+
+Next step: /speckit.plan I am building with Python and FastAPI
+```
+</CodeGroup>
+
+## Clarifications Section
+
+Answers are recorded in the spec with timestamps:
+
+```markdown
+## Clarifications
+
+### Session 2024-03-15
+
+- Q: How should task data be encrypted? → A: Encrypt at rest and in transit
+- Q: What is the authentication token expiration policy? → A: 1 hour, no refresh
+- Q: How should the system handle concurrent task updates? → A: Last-write-wins with timestamp tracking
+- Q: What performance target for task list queries? → A: < 100ms for up to 1000 tasks
+- Q: Are GDPR compliance requirements needed? → A: Yes, support data export and deletion
+```
+
+## Strategic Question Selection
+
+The command asks about decisions that materially impact:
+
+### Architecture
+
+- Database choice (relational vs. document vs. cache)
+- Stateful vs. stateless design
+- Monolith vs. microservices
+- Sync vs. async processing
+
+### Data Modeling
+
+- Entity relationships
+- State machine transitions
+- Data retention policies
+- Partitioning strategies
+
+### UX Behavior
+
+- Real-time vs. polling updates
+- Optimistic vs. pessimistic locking
+- Offline support requirements
+- Error recovery flows
+
+### Operational Readiness
+
+- Performance SLAs
+- Security posture
+- Compliance obligations
+- Monitoring/alerting needs
+
+## Question Limits
+
+<Warning>
+  **Maximum 5 questions per session.** The command prioritizes high-impact decisions and defers low-impact details to the planning phase.
+</Warning>
+
+### What Gets Asked
+
+- Scope boundaries affecting architecture
+- Security/privacy decisions with legal implications
+- Performance targets driving technology choices
+- User experience tradeoffs with competing solutions
+
+### What Gets Deferred
+
+- Implementation details (framework selection)
+- Code organization preferences
+- Logging format specifics
+- Variable naming conventions
+
+## Validation After Clarification
+
+Ensures quality of updates:
+
+<Steps>
+  <Step title="Session Completeness">
+    Exactly one bullet per accepted answer, no duplicates
+  </Step>
+  
+  <Step title="Question Quota">
+    Total asked questions ≤ 5
+  </Step>
+  
+  <Step title="No Lingering Vagueness">
+    Updated sections contain no unresolved placeholders that answers addressed
+  </Step>
+  
+  <Step title="No Contradictions">
+    Earlier ambiguous statements removed or replaced
+  </Step>
+  
+  <Step title="Structural Validity">
+    Markdown structure intact, only allowed new headings are Clarifications sections
+  </Step>
+  
+  <Step title="Terminology Consistency">
+    Same canonical term used across all updated sections
+  </Step>
+</Steps>
+
+## Early Termination
+
+You can stop clarification at any time:
+
+```text
+User: "done"
+User: "good"
+User: "proceed"
+User: "stop"
+```
+
+The command saves progress and reports:
+- Questions answered so far
+- Coverage status
+- Whether to proceed to planning or clarify again later
+
+## No Ambiguities Detected
+
+If the spec is already clear:
+
+```text
+✓ Loaded feature specification: specs/003-task-api/spec.md
+✓ Performed coverage analysis
+
+Coverage Summary:
+  ✓ Clear: All categories
+
+No critical ambiguities detected worth formal clarification.
+
+The specification is well-defined and ready for planning.
+
+Next step: /speckit.plan I am building with Python and FastAPI
+```
+
+## Best Practices
+
+### Run Before Planning
+
+<Warning>
+  Clarification is **expected before `/speckit.plan`**. If skipped, downstream rework risk increases significantly.
+</Warning>
+
+### Provide Context Hints
+
+Help prioritize questions:
+
+```bash
+# Security-focused
+/speckit.clarify Focus on security and compliance
+
+# Performance-focused
+/speckit.clarify Concerned about scalability and response times
+
+# UX-focused
+/speckit.clarify Want to nail down the user experience details
+```
+
+### Accept Recommendations
+
+The AI suggests options based on:
+- Industry best practices
+- Project type patterns
+- Risk reduction strategies
+- Alignment with existing spec context
+
+Accept unless you have specific constraints.
+
+### Answer All Questions
+
+Each question impacts implementation:
+- Skipping questions leaves ambiguity
+- Ambiguity leads to rework
+- Answer thoughtfully but don't overthink
+
+## Handoffs
+
+After clarification:
+
+<CardGroup cols={2}>
+  <Card title="Build Technical Plan" icon="sitemap" href="/commands/plan">
+    Generate architecture with all ambiguities resolved
+  </Card>
+  
+  <Card title="Run Another Session" icon="comments" href="/commands/clarify">
+    If deferred items remain and you want to address them now
+  </Card>
+</CardGroup>
+
+## File Updates
+
+```text
+specs/003-task-api/
+└── spec.md                    # Updated with clarifications
+```
+
+No new files created - all updates go into existing spec.md.
+
+## Next Steps
+
+<Card title="Plan" icon="sitemap" href="/commands/plan">
+  Create technical architecture and design decisions
+</Card>

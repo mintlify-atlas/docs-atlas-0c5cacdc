@@ -1,0 +1,550 @@
+---
+title: /speckit.tasks
+description: Generate actionable, dependency-ordered tasks from implementation plan
+---
+
+The `/speckit.tasks` command transforms your technical plan into a complete, executable task breakdown organized by user stories with clear dependencies and parallelization opportunities.
+
+## Purpose
+
+Create implementation-ready task lists:
+- Organize tasks by user story (independently testable increments)
+- Define clear dependencies and execution order
+- Identify parallel execution opportunities
+- Map tasks to specific file paths
+- Enable incremental delivery (MVP first, then enhancements)
+- Support Test-Driven Development (optional)
+
+<Note>
+  Tasks are organized **by user story** (not by layer or component) to enable independent implementation and testing of each story as a complete feature slice.
+</Note>
+
+## Usage
+
+```bash
+# Generate tasks from the current plan
+/speckit.tasks
+
+# Generate tasks with context hints
+/speckit.tasks Focus on getting to MVP quickly
+
+# Generate tasks with TDD emphasis
+/speckit.tasks We want comprehensive test coverage
+```
+
+## How It Works
+
+<Steps>
+  <Step title="Setup">
+    Runs prerequisite check and parses:
+    - `FEATURE_DIR`: Current feature directory
+    - `AVAILABLE_DOCS`: List of available design documents
+    - Validates plan.md and spec.md exist
+  </Step>
+  
+  <Step title="Load Design Documents">
+    Reads available artifacts:
+    - **Required**: plan.md (tech stack, structure), spec.md (user stories with priorities)
+    - **Optional**: data-model.md (entities), contracts/ (interfaces), research.md (decisions), quickstart.md (scenarios)
+    
+    Note: Not all projects have all documents
+  </Step>
+  
+  <Step title="Extract Information">
+    Analyzes design documents:
+    - User stories from spec.md with priorities (P1, P2, P3)
+    - Tech stack and project structure from plan.md
+    - Entities from data-model.md (if exists)
+    - Interface contracts from contracts/ (if exists)
+    - Technical decisions from research.md (if exists)
+  </Step>
+  
+  <Step title="Generate Task Phases">
+    Creates task breakdown:
+    - **Phase 1**: Setup (project initialization, structure)
+    - **Phase 2**: Foundational (blocking prerequisites for ALL user stories)
+    - **Phase 3+**: One phase per user story (in priority order)
+    - **Final Phase**: Polish & cross-cutting concerns
+    
+    Each user story phase includes:
+    - Story goal and independent test criteria
+    - Tests (if requested) written FIRST
+    - Implementation tasks (models → services → interfaces)
+  </Step>
+  
+  <Step title="Define Dependencies">
+    Documents execution order:
+    - Phase-level dependencies (Setup → Foundational → Stories → Polish)
+    - Within-story dependencies (Tests → Models → Services → Endpoints)
+    - Cross-story dependencies (rare - stories should be independent)
+  </Step>
+  
+  <Step title="Identify Parallelization">
+    Marks tasks with `[P]` that can run concurrently:
+    - Different files
+    - No dependencies on incomplete tasks
+    - Same layer across different user stories
+  </Step>
+  
+  <Step title="Format Validation">
+    Ensures ALL tasks follow checklist format:
+    - `- [ ]` checkbox
+    - `[TaskID]` sequential (T001, T002, etc.)
+    - `[P]` marker if parallelizable
+    - `[Story]` label for user story phases (US1, US2, US3)
+    - Description with exact file path
+  </Step>
+  
+  <Step title="Generate tasks.md">
+    Writes tasks file using template structure with:
+    - All phases properly organized
+    - Dependency graph
+    - Parallel execution examples
+    - Implementation strategy (MVP first)
+  </Step>
+  
+  <Step title="Report">
+    Outputs:
+    - Total task count
+    - Task count per user story
+    - Parallel opportunities
+    - Independent test criteria per story
+    - Suggested MVP scope
+    - Format validation confirmation
+  </Step>
+</Steps>
+
+## Task Format
+
+Every task MUST follow this strict format:
+
+```markdown
+- [ ] [TaskID] [P?] [Story?] Description with file path
+```
+
+### Format Components
+
+<Steps>
+  <Step title="Checkbox">
+    Always start with `- [ ]` (markdown checkbox)
+  </Step>
+  
+  <Step title="Task ID">
+    Sequential number (T001, T002, T003) in execution order
+  </Step>
+  
+  <Step title="[P] Marker (Optional)">
+    Include ONLY if task is parallelizable:
+    - Different files than other tasks
+    - No dependencies on incomplete tasks
+  </Step>
+  
+  <Step title="[Story] Label (Conditional)">
+    **Required for user story phases only:**
+    - Format: [US1], [US2], [US3]
+    - Maps to user stories from spec.md
+    - Setup/Foundational/Polish: NO story label
+  </Step>
+  
+  <Step title="Description">
+    Clear action with exact file path
+  </Step>
+</Steps>
+
+### Examples
+
+<CodeGroup>
+```markdown Correct Formats
+- [ ] T001 Create project structure per implementation plan
+- [ ] T005 [P] Implement authentication middleware in src/middleware/auth.py
+- [ ] T012 [P] [US1] Create User model in src/models/user.py
+- [ ] T014 [US1] Implement UserService in src/services/user_service.py
+```
+
+```markdown Wrong Formats
+- [ ] Create User model                           # Missing ID and Story label
+T001 [US1] Create model                           # Missing checkbox
+- [ ] [US1] Create User model                     # Missing Task ID
+- [ ] T001 [US1] Create model                     # Missing file path
+```
+</CodeGroup>
+
+## Task Organization
+
+### Phase 1: Setup
+
+Project initialization (no story labels):
+
+```markdown
+## Phase 1: Setup (Shared Infrastructure)
+
+**Purpose**: Project initialization and basic structure
+
+- [ ] T001 Create project structure per implementation plan
+- [ ] T002 Initialize Python project with FastAPI dependencies
+- [ ] T003 [P] Configure linting (flake8, black) and formatting tools
+- [ ] T004 [P] Setup pre-commit hooks for code quality
+- [ ] T005 Configure environment variables and .env.example
+```
+
+### Phase 2: Foundational
+
+Blocking prerequisites that ALL stories need (no story labels):
+
+```markdown
+## Phase 2: Foundational (Blocking Prerequisites)
+
+**Purpose**: Core infrastructure that MUST be complete before ANY user story
+
+**⚠️ CRITICAL**: No user story work can begin until this phase is complete
+
+- [ ] T006 Setup database schema and Alembic migrations framework
+- [ ] T007 [P] Create base model class with common fields (id, created_at, updated_at)
+- [ ] T008 [P] Implement database connection pooling in src/db/connection.py
+- [ ] T009 [P] Setup FastAPI app structure with middleware in src/main.py
+- [ ] T010 Create error handling middleware in src/middleware/errors.py
+- [ ] T011 [P] Configure structured logging in src/utils/logger.py
+
+**Checkpoint**: Foundation ready - user story implementation can now begin in parallel
+```
+
+### Phase 3+: User Stories
+
+One phase per story, ordered by priority:
+
+<CodeGroup>
+```markdown User Story 1 (P1 - MVP)
+## Phase 3: User Story 1 - Basic Login (Priority: P1) 🎯 MVP
+
+**Goal**: Users can log in with email and password to access protected features
+
+**Independent Test**: Create account, log in, access protected page. Delivers immediate value by protecting sensitive features.
+
+### Tests for User Story 1 (OPTIONAL - only if tests requested) ⚠️
+
+> **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
+
+- [ ] T012 [P] [US1] Contract test for POST /api/v1/auth/login in tests/contract/test_auth_api.py
+- [ ] T013 [P] [US1] Contract test for POST /api/v1/auth/logout in tests/contract/test_auth_api.py
+- [ ] T014 [P] [US1] Integration test for complete login flow in tests/integration/test_login_flow.py
+
+### Implementation for User Story 1
+
+- [ ] T015 [P] [US1] Create User model with password hashing in src/models/user.py
+- [ ] T016 [P] [US1] Create Session model in src/models/session.py
+- [ ] T017 [US1] Implement AuthService with login/logout logic in src/services/auth_service.py
+- [ ] T018 [US1] Implement session authentication middleware in src/middleware/session_auth.py
+- [ ] T019 [US1] Implement POST /api/v1/auth/login endpoint in src/api/auth.py
+- [ ] T020 [US1] Implement POST /api/v1/auth/logout endpoint in src/api/auth.py
+- [ ] T021 [US1] Add account locking after 5 failed attempts to AuthService
+- [ ] T022 [US1] Add logging for authentication events
+
+**Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
+```
+
+```markdown User Story 2 (P2)
+## Phase 4: User Story 2 - Password Reset (Priority: P2)
+
+**Goal**: Users can reset forgotten passwords via email link
+
+**Independent Test**: Request password reset, receive email, set new password, log in. Delivers value by reducing support tickets.
+
+### Tests for User Story 2 (OPTIONAL) ⚠️
+
+- [ ] T023 [P] [US2] Contract test for POST /api/v1/auth/password-reset/request in tests/contract/test_auth_api.py
+- [ ] T024 [P] [US2] Contract test for POST /api/v1/auth/password-reset/confirm in tests/contract/test_auth_api.py
+- [ ] T025 [P] [US2] Integration test for password reset flow in tests/integration/test_password_reset_flow.py
+
+### Implementation for User Story 2
+
+- [ ] T026 [P] [US2] Create PasswordReset model in src/models/password_reset.py
+- [ ] T027 [US2] Implement PasswordService with reset logic in src/services/password_service.py
+- [ ] T028 [US2] Implement email service integration (SendGrid) in src/services/email_service.py
+- [ ] T029 [US2] Implement POST /api/v1/auth/password-reset/request endpoint in src/api/auth.py
+- [ ] T030 [US2] Implement POST /api/v1/auth/password-reset/confirm endpoint in src/api/auth.py
+- [ ] T031 [US2] Add password reset email template in templates/password_reset.html
+- [ ] T032 [US2] Revoke all user sessions on password change
+
+**Checkpoint**: User Stories 1 AND 2 should both work independently
+```
+
+```markdown User Story 3 (P3)
+## Phase 5: User Story 3 - OAuth2 Social Login (Priority: P3)
+
+**Goal**: Users can log in using Google or GitHub accounts
+
+**Independent Test**: Click OAuth button, authorize, access dashboard. Delivers value by reducing friction for new users.
+
+### Tests for User Story 3 (OPTIONAL) ⚠️
+
+- [ ] T033 [P] [US3] Contract test for OAuth authorization flow in tests/contract/test_oauth_api.py
+- [ ] T034 [P] [US3] Contract test for OAuth callback handling in tests/contract/test_oauth_api.py
+- [ ] T035 [P] [US3] Integration test for OAuth login flow in tests/integration/test_oauth_flow.py
+
+### Implementation for User Story 3
+
+- [ ] T036 [P] [US3] Create OAuthConnection model in src/models/oauth_connection.py
+- [ ] T037 [US3] Implement OAuthService with PKCE flow in src/services/oauth_service.py
+- [ ] T038 [US3] Implement GET /api/v1/oauth/{provider}/authorize endpoint in src/api/oauth.py
+- [ ] T039 [US3] Implement GET /api/v1/oauth/{provider}/callback endpoint in src/api/oauth.py
+- [ ] T040 [US3] Configure OAuth provider credentials (Google, GitHub) in settings
+- [ ] T041 [US3] Handle OAuth provider unavailability with graceful fallback
+
+**Checkpoint**: All user stories should now be independently functional
+```
+</CodeGroup>
+
+### Final Phase: Polish
+
+Cross-cutting improvements (no story labels):
+
+```markdown
+## Phase 6: Polish & Cross-Cutting Concerns
+
+**Purpose**: Improvements that affect multiple user stories
+
+- [ ] T042 [P] Update API documentation with OpenAPI/Swagger specs
+- [ ] T043 [P] Add comprehensive docstrings to all public functions
+- [ ] T044 Code cleanup and refactoring for consistency
+- [ ] T045 Performance optimization (database query optimization, caching)
+- [ ] T046 [P] Security hardening (rate limiting, CORS configuration)
+- [ ] T047 [P] Add unit tests for edge cases in services (if not already covered)
+- [ ] T048 Run quickstart.md validation to ensure setup instructions work
+- [ ] T049 Update README with authentication feature documentation
+```
+
+## Dependencies & Execution Order
+
+### Phase Dependencies
+
+```text
+Setup (Phase 1)
+    ↓
+Foundational (Phase 2)  ← BLOCKS all user stories
+    ↓
+    ├─────────────────────→ User Story 1 (P1) 🎯 MVP
+    ├─────────────────────→ User Story 2 (P2)
+    └─────────────────────→ User Story 3 (P3)
+    ↓
+Polish (Final Phase)  ← Depends on desired stories completing
+```
+
+### User Story Independence
+
+- **User Story 1**: Independent after Foundational
+- **User Story 2**: Independent after Foundational (may integrate with US1)
+- **User Story 3**: Independent after Foundational (may integrate with US1/US2)
+
+<Note>
+  User stories are designed to be **independently testable and deployable**. You can ship US1 as MVP without waiting for US2 or US3.
+</Note>
+
+### Within Each User Story
+
+If tests included:
+1. **Tests FIRST** (must FAIL before implementation)
+2. Models (can run in parallel if marked `[P]`)
+3. Services (depend on models)
+4. Endpoints/Interfaces (depend on services)
+5. Integration logic
+
+## Parallel Opportunities
+
+Tasks marked `[P]` can run concurrently:
+
+```bash
+# Launch all models for User Story 1 together:
+Task: "Create User model in src/models/user.py"
+Task: "Create Session model in src/models/session.py"
+
+# Launch tests for User Story 1 together:
+Task: "Contract test for login endpoint"
+Task: "Contract test for logout endpoint" 
+Task: "Integration test for login flow"
+```
+
+<Note>
+  **Different user stories can be worked on in parallel** by different team members once the Foundational phase completes.
+</Note>
+
+## Implementation Strategies
+
+### MVP First (Recommended)
+
+Deliver value incrementally:
+
+<Steps>
+  <Step title="Phase 1: Setup">
+    Initialize project structure
+  </Step>
+  
+  <Step title="Phase 2: Foundational">
+    Complete blocking prerequisites
+  </Step>
+  
+  <Step title="Phase 3: User Story 1 Only">
+    Implement just the P1 story
+  </Step>
+  
+  <Step title="STOP and VALIDATE">
+    Test US1 independently, deploy/demo if ready
+  </Step>
+  
+  <Step title="Add User Story 2">
+    Test independently, deploy/demo
+  </Step>
+  
+  <Step title="Add User Story 3">
+    Test independently, deploy/demo
+  </Step>
+</Steps>
+
+### Parallel Team Strategy
+
+With multiple developers:
+
+1. **Team completes Setup + Foundational together**
+2. **Once Foundational done:**
+   - Developer A: User Story 1 (P1)
+   - Developer B: User Story 2 (P2)
+   - Developer C: User Story 3 (P3)
+3. **Stories complete and integrate independently**
+
+## Real-World Example
+
+<CodeGroup>
+```bash Command
+/speckit.tasks
+```
+
+```text Console Output
+✓ Setup complete
+  - Feature directory: specs/003-user-auth/
+  - Available docs: spec.md, plan.md, research.md, data-model.md, contracts/
+
+✓ Loaded design documents
+  - Spec: 3 user stories (P1, P2, P3)
+  - Plan: Python 3.11, FastAPI, PostgreSQL, Redis
+  - Data model: 4 entities
+  - Contracts: 2 API specs (auth.md, oauth.md)
+
+✓ Generated task breakdown
+  - Phase 1: Setup (5 tasks)
+  - Phase 2: Foundational (6 tasks) ← BLOCKS all stories
+  - Phase 3: User Story 1 - Basic Login (11 tasks) 🎯 MVP
+  - Phase 4: User Story 2 - Password Reset (10 tasks)
+  - Phase 5: User Story 3 - OAuth2 Social Login (9 tasks)
+  - Phase 6: Polish (8 tasks)
+
+✓ Identified parallel opportunities
+  - 18 tasks marked [P] (can run concurrently)
+  - All user stories can start in parallel after Foundational
+
+✓ Format validation
+  - All 49 tasks follow checklist format
+  - Task IDs: T001-T049 (sequential)
+  - Story labels: US1 (11 tasks), US2 (10 tasks), US3 (9 tasks)
+  - File paths: All tasks include exact paths
+
+✓ Generated: specs/003-user-auth/tasks.md
+
+Summary:
+  - Total tasks: 49
+  - Setup: 5 tasks
+  - Foundational: 6 tasks (CRITICAL - blocks all stories)
+  - User Story 1 (MVP): 11 tasks
+  - User Story 2: 10 tasks
+  - User Story 3: 9 tasks
+  - Polish: 8 tasks
+  - Parallel opportunities: 18 tasks
+
+MVP scope (recommended first delivery):
+  - Phase 1: Setup
+  - Phase 2: Foundational
+  - Phase 3: User Story 1 (Basic Login)
+  - Total MVP tasks: 22 (45% of total)
+
+Next steps:
+  - Review tasks.md
+  - Run /speckit.analyze (optional) to validate consistency
+  - Run /speckit.implement to execute the plan
+```
+</CodeGroup>
+
+## Tests: Optional by Default
+
+<Warning>
+  Test tasks are **OPTIONAL** and only generated if:
+  - Explicitly requested in the feature specification, OR
+  - User requests TDD approach via command arguments
+  
+  If no tests requested, task breakdown focuses purely on implementation.
+</Warning>
+
+## Best Practices
+
+### Trust the Task Breakdown
+
+The AI:
+- Maps entities to the stories that need them
+- Orders tasks by dependency
+- Identifies parallelization opportunities
+- Ensures each story is independently testable
+
+### Follow TDD If Tests Included
+
+When tests are requested:
+1. **Write test** (it should FAIL)
+2. **Write implementation** (make test PASS)
+3. **Refactor** (keep test passing)
+
+### Commit Frequently
+
+After each task or logical group:
+```bash
+git add .
+git commit -m "T015: Create User model with password hashing"
+```
+
+### Stop at Checkpoints
+
+After each user story phase:
+- Run all tests for that story
+- Validate independently
+- Consider deploying/demoing
+- Decide: proceed to next story or polish current one?
+
+## Handoffs
+
+After task generation:
+
+<CardGroup cols={2}>
+  <Card title="Analyze For Consistency" icon="magnifying-glass" href="/commands/analyze">
+    Validate consistency across spec, plan, and tasks (optional)
+  </Card>
+  
+  <Card title="Implement Project" icon="code" href="/commands/implement">
+    Execute the implementation plan (starts task execution)
+  </Card>
+</CardGroup>
+
+## File Structure
+
+```text
+specs/003-user-auth/
+├── spec.md                    # Feature specification
+├── plan.md                    # Implementation plan
+├── research.md                # Technical decisions
+├── data-model.md              # Entity definitions
+├── quickstart.md              # Development guide
+├── tasks.md                   # Task breakdown (this command)
+└── contracts/
+    ├── auth.md
+    └── oauth.md
+```
+
+## Next Steps
+
+<Card title="Implement" icon="code" href="/commands/implement">
+  Execute the task plan and build the feature
+</Card>
